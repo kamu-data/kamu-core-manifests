@@ -1,7 +1,13 @@
-package dev.kamu.core.manifests;
+package dev.kamu.core.manifests
 
 import java.net.URI
 import org.apache.hadoop.fs.Path
+
+object DataSourcePolling {
+  val DEFAULT_READER_OPTIONS: Map[String, String] = Map(
+    "mode" -> "FAILFAST"
+  )
+}
 
 case class DataSourcePolling(
   /** Unique identifier of the dataset */
@@ -17,9 +23,7 @@ case class DataSourcePolling(
   /** A raw data format (as supported by Spark's read function) */
   format: String,
   /** Options to pass into the [[org.apache.spark.sql.DataFrameReader]] */
-  readerOptions: Map[String, String] = Map(
-    "mode" -> "FAILFAST"
-  ),
+  readerOptions: Map[String, String] = Map.empty,
   /** A DDL-formatted schema.
     *
     * Schema can be used to coerce values into more appropriate data types.
@@ -27,11 +31,17 @@ case class DataSourcePolling(
   schema: Vector[String] = Vector.empty,
   /** Pre-processing steps to shape the data */
   preprocess: Vector[ProcessingStepSQL] = Vector.empty,
-  /** One of the supported merge strategies (see [[MergeStrategy]]) */
-  mergeStrategy: MergeStrategy = Append(),
+  /** One of the supported merge strategies (see [[MergeStrategyKind]]) */
+  mergeStrategy: MergeStrategyKind = Append(),
   /** Collapse partitions of the result to specified number.
     *
     * If zero - the step will be skipped
     */
   coalesce: Int = 1
-)
+) {
+  def withDefaults(): DataSourcePolling = {
+    copy(
+      readerOptions =
+        DataSourcePolling.DEFAULT_READER_OPTIONS ++ readerOptions)
+  }
+}

@@ -1,6 +1,6 @@
 package dev.kamu.core.manifests
 
-sealed trait MergeStrategy
+sealed trait MergeStrategyKind
 
 /** Append merge strategy.
   *
@@ -11,7 +11,7 @@ sealed trait MergeStrategy
 case class Append(
   /** Whether to add a system time column to the data */
   addSystemTime: Boolean = false
-) extends MergeStrategy
+) extends MergeStrategyKind
 
 /** Ledger merge strategy.
   *
@@ -31,7 +31,7 @@ case class Append(
 case class Ledger(
   /** Name of the column that uniquely identifies the record throughout its lifetime */
   primaryKey: String
-) extends MergeStrategy
+) extends MergeStrategyKind
 
 /** Snapshot merge strategy.
   *
@@ -73,4 +73,4 @@ case class Snapshot(
     * compared one by one.
     */
   modificationIndicator: Option[String]
-) extends MergeStrategy
+) extends MergeStrategyKind
