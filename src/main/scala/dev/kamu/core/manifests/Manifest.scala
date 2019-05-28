@@ -15,5 +15,5 @@ case class Manifest[T](
     */
   kind: String,
   /** Here goes the actual manifest data */
-  values: T
+  content: T
 )
