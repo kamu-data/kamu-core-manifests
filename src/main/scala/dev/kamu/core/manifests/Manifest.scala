@@ -7,7 +7,7 @@ case class Manifest[T](
     * older manifests istead of matching them to latest format and
     * erroring out.
     */
-  apiVersion: String,
+  apiVersion: Int,
   /** Name of the manifest.
     *
     * This prevents accidentally taking one kind of a manifest
