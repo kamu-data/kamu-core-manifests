@@ -12,7 +12,9 @@ case class RepositoryVolumeMap(
   /** Directory to store cache information in */
   checkpointDir: Path,
   /** Root data set directory for ingested data */
-  dataDir: Path
+  dataDirRoot: Path,
+  /** Data set directory for derivative data */
+  dataDirDeriv: Path
 ) {
   def toManifest: Manifest[RepositoryVolumeMap] = {
     Manifest(
