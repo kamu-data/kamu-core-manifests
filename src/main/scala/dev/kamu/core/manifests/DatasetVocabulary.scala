@@ -7,4 +7,4 @@ case class DatasetVocabulary(
   obsvAdded: String = "added",
   obsvChanged: String = "changed",
   obsvRemoved: String = "removed"
-)
+) extends Resource[DatasetVocabulary]
