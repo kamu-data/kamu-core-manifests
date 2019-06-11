@@ -1,6 +1,7 @@
 package dev.kamu.core.manifests
 
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileSystem, Path}
+import utils.fs._
 
 /** Describes the layout of the data repository on disk */
 case class RepositoryVolumeMap(
@@ -12,4 +13,22 @@ case class RepositoryVolumeMap(
   dataDirRoot: Path,
   /** Data set directory for derivative data */
   dataDirDeriv: Path
-) extends Resource[RepositoryVolumeMap]
+) extends Resource[RepositoryVolumeMap] {
+
+  def allPaths: Seq[Path] = Seq(
+    downloadDir,
+    checkpointDir,
+    dataDirRoot,
+    dataDirDeriv
+  )
+
+  def toAbsolute(fs: FileSystem): RepositoryVolumeMap = {
+    copy(
+      downloadDir = fs.toAbsolute(downloadDir),
+      checkpointDir = fs.toAbsolute(checkpointDir),
+      dataDirRoot = fs.toAbsolute(dataDirRoot),
+      dataDirDeriv = fs.toAbsolute(dataDirDeriv)
+    )
+  }
+
+}
