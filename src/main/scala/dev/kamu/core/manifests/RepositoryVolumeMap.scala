@@ -5,6 +5,8 @@ import utils.fs._
 
 /** Describes the layout of the data repository on disk */
 case class RepositoryVolumeMap(
+  /** Directory to store dataset source manifests in */
+  sourcesDir: Path,
   /** Directory to store downloaded data in before processing */
   downloadDir: Path,
   /** Directory to store cache information in */
@@ -16,6 +18,7 @@ case class RepositoryVolumeMap(
 ) extends Resource[RepositoryVolumeMap] {
 
   def allPaths: Seq[Path] = Seq(
+    sourcesDir,
     downloadDir,
     checkpointDir,
     dataDirRoot,
@@ -24,6 +27,7 @@ case class RepositoryVolumeMap(
 
   def toAbsolute(fs: FileSystem): RepositoryVolumeMap = {
     copy(
+      sourcesDir = fs.toAbsolute(sourcesDir),
       downloadDir = fs.toAbsolute(downloadDir),
       checkpointDir = fs.toAbsolute(checkpointDir),
       dataDirRoot = fs.toAbsolute(dataDirRoot),

@@ -1,7 +1,5 @@
 package dev.kamu.core.manifests.utils
 
-import java.util.zip.ZipInputStream
-
 import org.apache.hadoop.fs.{FileSystem, Path}
 
 package object fs {

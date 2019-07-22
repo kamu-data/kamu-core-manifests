@@ -9,7 +9,8 @@ case class TransformStreaming(
   steps: Vector[ProcessingStepSQL] = Vector.empty,
   /** Spark partitioning scheme */
   partitionBy: Vector[String] = Vector.empty
-) extends Resource[TransformStreaming]
+) extends DataSource
+    with Resource[TransformStreaming]
 
 case class TransformStreamingInput(
   /** ID of the input dataset */

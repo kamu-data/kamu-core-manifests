@@ -3,6 +3,12 @@ package dev.kamu.core.manifests
 import java.net.URI
 import org.apache.hadoop.fs.Path
 
+trait DataSource {
+
+  /** Unique identifier of the dataset */
+  def id: String
+}
+
 case class DataSourcePolling(
   /** Unique identifier of the dataset */
   id: String,
@@ -32,7 +38,8 @@ case class DataSourcePolling(
     * If zero - the step will be skipped
     */
   coalesce: Int = 1
-) extends Resource[DataSourcePolling] {
+) extends DataSource
+    with Resource[DataSourcePolling] {
   override def postLoad() = {
     copy(
       readerOptions =
