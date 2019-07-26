@@ -6,12 +6,15 @@ import org.apache.hadoop.fs.Path
 trait DataSource {
 
   /** Unique identifier of the dataset */
-  def id: String
+  def id: DatasetID
+
+  /** IDs of the datasets this source depends on */
+  def dependsOn: Seq[DatasetID]
 }
 
 case class DataSourcePolling(
   /** Unique identifier of the dataset */
-  id: String,
+  id: DatasetID,
   /** Data source location */
   url: URI,
   /** Name of a compression algorithm used on data */
@@ -40,7 +43,10 @@ case class DataSourcePolling(
   coalesce: Int = 1
 ) extends DataSource
     with Resource[DataSourcePolling] {
-  override def postLoad() = {
+
+  override def dependsOn: Seq[DatasetID] = Seq.empty
+
+  override def postLoad(): DataSourcePolling = {
     copy(
       readerOptions =
         DataSourcePolling.DEFAULT_READER_OPTIONS ++ readerOptions
