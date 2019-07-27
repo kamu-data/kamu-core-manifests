@@ -2,7 +2,10 @@ package dev.kamu.core.manifests.parsing.pureconfig.yaml
 
 import pureconfig._
 import pureconfig.generic._
+import pureconfig.generic.semiauto
 import java.net.URI
+
+import dev.kamu.core.manifests.DerivativeInput
 import org.apache.hadoop.fs.Path
 
 package object defaults {
@@ -20,4 +23,11 @@ package object defaults {
 
   implicit val pathWriter = ConfigWriter[String]
     .contramap((p: Path) => p.toString)
+
+  implicit val modeReader: ConfigReader[DerivativeInput.Mode] =
+    semiauto.deriveEnumerationReader[DerivativeInput.Mode]
+
+  implicit val modeWriter: ConfigWriter[DerivativeInput.Mode] =
+    semiauto.deriveEnumerationWriter[DerivativeInput.Mode]
+
 }

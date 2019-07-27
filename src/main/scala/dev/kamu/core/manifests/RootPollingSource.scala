@@ -1,20 +1,10 @@
 package dev.kamu.core.manifests
 
 import java.net.URI
+
 import org.apache.hadoop.fs.Path
 
-trait DataSource {
-
-  /** Unique identifier of the dataset */
-  def id: DatasetID
-
-  /** IDs of the datasets this source depends on */
-  def dependsOn: Seq[DatasetID]
-}
-
-case class DataSourcePolling(
-  /** Unique identifier of the dataset */
-  id: DatasetID,
+case class RootPollingSource(
   /** Data source location */
   url: URI,
   /** Name of a compression algorithm used on data */
@@ -41,20 +31,17 @@ case class DataSourcePolling(
     * If zero - the step will be skipped
     */
   coalesce: Int = 1
-) extends DataSource
-    with Resource[DataSourcePolling] {
+) extends Resource[RootPollingSource] {
 
-  override def dependsOn: Seq[DatasetID] = Seq.empty
-
-  override def postLoad(): DataSourcePolling = {
+  override def postLoad(): RootPollingSource = {
     copy(
       readerOptions =
-        DataSourcePolling.DEFAULT_READER_OPTIONS ++ readerOptions
+        RootPollingSource.DEFAULT_READER_OPTIONS ++ readerOptions
     )
   }
 }
 
-object DataSourcePolling {
+object RootPollingSource {
   val DEFAULT_READER_OPTIONS: Map[String, String] = Map(
     "mode" -> "FAILFAST"
   )
