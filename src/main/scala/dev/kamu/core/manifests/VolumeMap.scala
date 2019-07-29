@@ -4,9 +4,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import utils.fs._
 
 /** Describes the layout of the data repository on disk */
-case class RepositoryVolumeMap(
-  /** Directory to store dataset source manifests in */
-  sourcesDir: Path,
+case class VolumeMap(
   /** Directory to store downloaded data in before processing */
   downloadDir: Path,
   /** Directory to store cache information in */
@@ -15,19 +13,17 @@ case class RepositoryVolumeMap(
   dataDirRoot: Path,
   /** Data set directory for derivative data */
   dataDirDeriv: Path
-) extends Resource[RepositoryVolumeMap] {
+) extends Resource[VolumeMap] {
 
   def allPaths: Seq[Path] = Seq(
-    sourcesDir,
     downloadDir,
     checkpointDir,
     dataDirRoot,
     dataDirDeriv
   )
 
-  def toAbsolute(fs: FileSystem): RepositoryVolumeMap = {
+  def toAbsolute(fs: FileSystem): VolumeMap = {
     copy(
-      sourcesDir = fs.toAbsolute(sourcesDir),
       downloadDir = fs.toAbsolute(downloadDir),
       checkpointDir = fs.toAbsolute(checkpointDir),
       dataDirRoot = fs.toAbsolute(dataDirRoot),
