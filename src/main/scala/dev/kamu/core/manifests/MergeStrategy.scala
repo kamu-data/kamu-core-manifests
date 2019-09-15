@@ -9,9 +9,7 @@ sealed trait MergeStrategyKind
   * a system time column.
   */
 case class Append(
-  /** Whether to add a system time column to the data */
-  addSystemTime: Boolean = false
-) extends MergeStrategyKind
+  ) extends MergeStrategyKind
 
 /** Ledger merge strategy.
   *
@@ -44,9 +42,9 @@ case class Ledger(
   * where data already added is immutable. It does so by treating rows in
   * snapshots as "observation" events and adding an "observed" column
   * that will contain:
-  *   - "added" - when a row appears for the first time
-  *   - "removed" - when row disappears
-  *   - "updated" - whenever any row data has changed
+  *   - "I" - when a row appears for the first time
+  *   - "D" - when row disappears
+  *   - "U" - whenever any row data has changed
   *
   * It relies on a user-specified primary key column to correlate the rows
   * between the two snapshots.

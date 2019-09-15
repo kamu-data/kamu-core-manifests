@@ -4,7 +4,7 @@ case class DatasetVocabulary(
   systemTimeColumn: String = "systemTime",
   lastUpdatedTimeSystemColumn: String = "lastUpdatedSys",
   observationColumn: String = "observed",
-  obsvAdded: String = "added",
-  obsvChanged: String = "changed",
-  obsvRemoved: String = "removed"
+  obsvAdded: String = "I",
+  obsvChanged: String = "U",
+  obsvRemoved: String = "D"
 ) extends Resource[DatasetVocabulary]
