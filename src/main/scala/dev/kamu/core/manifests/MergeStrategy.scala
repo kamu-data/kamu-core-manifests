@@ -27,8 +27,8 @@ case class Append(
   * the set of columns can only grow.
   */
 case class Ledger(
-  /** Name of the column that uniquely identifies the record throughout its lifetime */
-  primaryKey: String
+  /** Names of the columns that uniquely identify the record throughout its lifetime */
+  primaryKey: Vector[String]
 ) extends MergeStrategyKind
 
 /** Snapshot merge strategy.
@@ -61,9 +61,9 @@ case class Ledger(
   * new snapshots, so the set of columns can only grow.
   */
 case class Snapshot(
-  /** Name of the column that uniquely identifies the record throughout
+  /** Names of the columns that uniquely identify the record throughout
     * its lifetime */
-  primaryKey: String,
+  primaryKey: Vector[String],
   /** Name of the column that always has a new value when row data changes.
     *
     * For example this can be a modification timestamp, an incremental
