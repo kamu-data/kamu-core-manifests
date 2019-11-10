@@ -8,7 +8,7 @@ sealed trait MergeStrategyKind
   * to the already ingested data without modifications. Optionally can add
   * a system time column.
   */
-case class Append(
+case class MergeStrategyAppend(
   ) extends MergeStrategyKind
 
 /** Ledger merge strategy.
@@ -26,7 +26,7 @@ case class Append(
   * It will always preserve all columns from existing and new snapshots, so
   * the set of columns can only grow.
   */
-case class Ledger(
+case class MergeStrategyLedger(
   /** Names of the columns that uniquely identify the record throughout its lifetime */
   primaryKey: Vector[String]
 ) extends MergeStrategyKind
@@ -60,7 +60,7 @@ case class Ledger(
   * This strategy will always preserve all columns from the existing and
   * new snapshots, so the set of columns can only grow.
   */
-case class Snapshot(
+case class MergeStrategySnapshot(
   /** Names of the columns that uniquely identify the record throughout
     * its lifetime */
   primaryKey: Vector[String],

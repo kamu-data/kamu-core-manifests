@@ -1,5 +1,7 @@
 package dev.kamu.core.manifests
 
+import java.net.URI
+
 import org.scalatest._
 import dev.kamu.core.manifests.parsing.pureconfig.yaml
 import yaml.defaults._
@@ -12,14 +14,27 @@ class UtilsSpec extends FlatSpec {
       |apiVersion: 1
       |kind: Dataset
       |content:
-      |  id: ca.vancouver.data.rapid-transit.lines
+      |  id: kamu.test
       |  rootPollingSource:
-      |    url: ftp://webftp.vancouver.ca/OpenData/shape/shape_rapid_transit.zip
-      |    format: shapefile
-      |    subPathRegex: rapid_transit_line.*
+      |    fetch:
+      |      kind: fetchUrl
+      |      url: ftp://kamu.dev/test.zip
+      |    prepare:
+      |    - kind: decompress
+      |      format: zip
+      |      subPathRegex: data_*.csv
+      |    read:
+      |      kind: generic
+      |      name: csv
+      |      options:
+      |        header: 'true'
       |    preprocess:
-      |      - view: output
-      |        query: SOME_SQL
+      |    - view: output
+      |      query: SELECT * FROM input
+      |    merge:
+      |      kind: snapshot
+      |      primaryKey:
+      |      - id
     """.stripMargin
 
   "YAML utils" should "successfully load root dataset manifest" in {
@@ -29,21 +44,31 @@ class UtilsSpec extends FlatSpec {
         apiVersion = 1,
         kind = "Dataset",
         content = Dataset(
-          id = DatasetID("ca.vancouver.data.rapid-transit.lines"),
+          id = DatasetID("kamu.test"),
           rootPollingSource = Some(
             RootPollingSource(
-              url = java.net.URI
-                .create(
-                  "ftp://webftp.vancouver.ca/OpenData/shape/shape_rapid_transit.zip"
-                ),
-              format = "shapefile",
-              subPathRegex = Some("rapid_transit_line.*"),
-              readerOptions = RootPollingSource.DEFAULT_READER_OPTIONS,
+              fetch = ExternalSourceFetchUrl(
+                url = URI.create("ftp://kamu.dev/test.zip")
+              ),
+              prepare = Vector(
+                PrepStepDecompress(
+                  format = "zip",
+                  subPathRegex = Some("data_*.csv")
+                )
+              ),
+              read = ReaderGeneric(
+                name = "csv",
+                options = ReaderGeneric.DEFAULT_READER_OPTIONS + ("header" -> "true")
+              ),
               preprocess = Vector(
                 ProcessingStepSQL(
                   view = "output",
-                  query = "SOME_SQL"
+                  query = "SELECT * FROM input"
                 )
+              ),
+              merge = MergeStrategySnapshot(
+                primaryKey = Vector("id"),
+                modificationIndicator = None
               )
             )
           )

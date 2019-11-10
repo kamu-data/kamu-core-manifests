@@ -1,31 +1,16 @@
 package dev.kamu.core.manifests
 
-import java.net.URI
-
-import org.apache.hadoop.fs.Path
-
 case class RootPollingSource(
-  /** Data source location */
-  url: URI,
-  /** Name of a compression algorithm used on data */
-  compression: Option[String] = None,
-  /** Path to a data file within a multi-file archive */
-  subPath: Option[Path] = None,
-  /** Regex for finding desired data file within a multi-file archive */
-  subPathRegex: Option[String] = None,
-  /** A raw data format (as supported by Spark's read function) */
-  format: String,
-  /** Options to pass into the [[org.apache.spark.sql.DataFrameReader]] */
-  readerOptions: Map[String, String] = Map.empty,
-  /** A DDL-formatted schema.
-    *
-    * Schema can be used to coerce values into more appropriate data types.
-    */
-  schema: Vector[String] = Vector.empty,
+  /** Determines where data is sourced from (see [[ExternalSourceKind]]) */
+  fetch: ExternalSourceKind,
+  /** Defines how raw data is prepared before reading (see [[PrepStepKind]]) */
+  prepare: Vector[PrepStepKind] = Vector.empty,
+  /** Defines how data is read into structured format (see [[ReaderKind]]) */
+  read: ReaderKind,
   /** Pre-processing steps to shape the data */
   preprocess: Vector[ProcessingStepSQL] = Vector.empty,
-  /** One of the supported merge strategies (see [[MergeStrategyKind]]) */
-  mergeStrategy: MergeStrategyKind = Append(),
+  /** Determines how newly-ingested data should be merged with existing history (see [[MergeStrategyKind]]) */
+  merge: MergeStrategyKind,
   /** Collapse partitions of the result to specified number.
     *
     * If zero - the step will be skipped
@@ -34,15 +19,6 @@ case class RootPollingSource(
 ) extends Resource[RootPollingSource] {
 
   override def postLoad(): RootPollingSource = {
-    copy(
-      readerOptions =
-        RootPollingSource.DEFAULT_READER_OPTIONS ++ readerOptions
-    )
+    copy(read = read.postLoad())
   }
-}
-
-object RootPollingSource {
-  val DEFAULT_READER_OPTIONS: Map[String, String] = Map(
-    "mode" -> "FAILFAST"
-  )
 }
