@@ -10,19 +10,24 @@ case class Dataset(
   /** If defined contains information about the root data source */
   rootPollingSource: Option[RootPollingSource] = None,
   /** If defined contains information about the derivative data source */
-  derivativeSource: Option[DerivativeSource] = None
+  derivativeSource: Option[DerivativeSource] = None,
+  /** If defined contains a reference to an existing dataset stored remotely */
+  remoteSource: Option[RemoteSource] = None
 ) extends Resource[Dataset] {
 
-  if (rootPollingSource.isDefined && derivativeSource.isDefined)
-    throw new ValidationException("Dataset must have only one source")
-  if (rootPollingSource.isEmpty && derivativeSource.isEmpty)
-    throw new ValidationException("Dataset must define a source")
+  Seq(rootPollingSource, derivativeSource, remoteSource).count(_.isDefined) match {
+    case 1 =>
+    case _ =>
+      throw new ValidationException("Dataset must define exactly one source")
+  }
 
   def kind: Dataset.Kind = {
     if (rootPollingSource.isDefined)
       Dataset.Kind.Root
-    else
+    else if (derivativeSource.isDefined)
       Dataset.Kind.Derivative
+    else
+      Dataset.Kind.Remote
   }
 
   def dependsOn: Seq[DatasetID] = {
@@ -35,7 +40,8 @@ case class Dataset(
   override def postLoad(): Dataset = {
     copy(
       rootPollingSource = rootPollingSource.map(_.postLoad()),
-      derivativeSource = derivativeSource.map(_.postLoad())
+      derivativeSource = derivativeSource.map(_.postLoad()),
+      remoteSource = remoteSource.map(_.postLoad())
     )
   }
 }
@@ -45,5 +51,6 @@ object Dataset {
   object Kind {
     case object Root extends Kind
     case object Derivative extends Kind
+    case object Remote extends Kind
   }
 }
