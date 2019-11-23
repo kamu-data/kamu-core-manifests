@@ -9,7 +9,7 @@
 package dev.kamu.core.manifests
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import utils.fs._
+import dev.kamu.core.utils.fs._
 
 case class VolumeLayout(
   /** Directory that contains all definitions of the datasets contained in this volume  */
