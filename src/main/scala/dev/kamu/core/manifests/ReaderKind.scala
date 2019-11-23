@@ -61,10 +61,7 @@ case class ReaderCsv(
   multiline: Boolean = false,
   nullValue: String = "",
   quote: String = "\"",
-  /** A DDL-formatted schema.
-    *
-    * Schema can be used to coerce values into more appropriate data types.
-    */
+  /** A DDL-formatted schema */
   schema: Vector[String] = Vector.empty
 ) extends ReaderKind {
   override def asGeneric(): ReaderKind = {
@@ -82,6 +79,43 @@ case class ReaderCsv(
         "quote" -> quote
       ) ++ (
         if (dateFormat.nonEmpty) Map("dateFormat" -> dateFormat)
+        else Map.empty
+      ),
+      schema = schema
+    )
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+case class ReaderJson(
+  /** Sets the string that indicates a date format */
+  dateFormat: String = "",
+  /** Allows to forcibly set one of standard basic or extended encoding */
+  encoding: String = "",
+  /** Parse one record, which may span multiple lines, per file */
+  multiline: Boolean = false,
+  /** Infers all primitive values as a string type */
+  primitivesAsString: Boolean = false,
+  /** Sets the string that indicates a timestamp format */
+  timestampFormat: String = "",
+  /** A DDL-formatted schema */
+  schema: Vector[String] = Vector.empty
+) extends ReaderKind {
+  override def asGeneric(): ReaderKind = {
+    ReaderGeneric(
+      name = "json",
+      options = ReaderGeneric.DEFAULT_READER_OPTIONS ++ Map(
+        "multiLine" -> (if (multiline) "true" else "false"),
+        "primitivesAsString" -> (if (primitivesAsString) "true" else "false")
+      ) ++ (
+        if (dateFormat.nonEmpty) Map("dateFormat" -> dateFormat)
+        else Map.empty
+      ) ++ (
+        if (encoding.nonEmpty) Map("encoding" -> encoding)
+        else Map.empty
+      ) ++ (
+        if (timestampFormat.nonEmpty) Map("timestampFormat" -> timestampFormat)
         else Map.empty
       ),
       schema = schema
