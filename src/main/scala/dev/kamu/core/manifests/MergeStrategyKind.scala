@@ -72,11 +72,11 @@ case class MergeStrategySnapshot(
   /** Names of the columns that uniquely identify the record throughout
     * its lifetime */
   primaryKey: Vector[String],
-  /** Name of the column that always has a new value when row data changes.
+  /** Names of the columns to compared to determine if a row has changed between two snapshots.
     *
     * For example this can be a modification timestamp, an incremental
     * version, or a data hash. If not specified all data columns will be
     * compared one by one.
     */
-  modificationIndicator: Option[String]
+  compareColumns: Vector[String] = Vector.empty
 ) extends MergeStrategyKind

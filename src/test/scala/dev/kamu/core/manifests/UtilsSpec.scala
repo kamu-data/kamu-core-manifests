@@ -74,10 +74,7 @@ class UtilsSpec extends FlatSpec {
                   query = "SELECT * FROM input"
                 )
               ),
-              merge = MergeStrategySnapshot(
-                primaryKey = Vector("id"),
-                modificationIndicator = None
-              )
+              merge = MergeStrategySnapshot(primaryKey = Vector("id"))
             )
           )
         )
