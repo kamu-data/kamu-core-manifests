@@ -15,6 +15,7 @@ import java.net.URI
 import java.beans.Introspector
 
 import dev.kamu.core.manifests.{
+  CachingKind,
   DerivativeInput,
   ExternalSourceKind,
   MergeStrategyKind,
@@ -48,24 +49,30 @@ package object defaults {
   implicit val externalSourceKindHint =
     new FieldCoproductHint[ExternalSourceKind]("kind") {
       override protected def fieldValue(name: String) =
-        Introspector.decapitalize(name.stripPrefix("ExternalSource"))
+        Introspector.decapitalize(name)
+    }
+
+  implicit val cachingKindHint =
+    new FieldCoproductHint[CachingKind]("kind") {
+      override protected def fieldValue(name: String) =
+        Introspector.decapitalize(name)
     }
 
   implicit val prepStepKindHint =
     new FieldCoproductHint[PrepStepKind]("kind") {
       override protected def fieldValue(name: String) =
-        Introspector.decapitalize(name.stripPrefix("PrepStep"))
+        Introspector.decapitalize(name)
     }
 
   implicit val readerKindHint =
     new FieldCoproductHint[ReaderKind]("kind") {
       override protected def fieldValue(name: String) =
-        Introspector.decapitalize(name.stripPrefix("Reader"))
+        Introspector.decapitalize(name)
     }
 
   implicit val mergeStrategyHint =
     new FieldCoproductHint[MergeStrategyKind]("kind") {
       override protected def fieldValue(name: String) =
-        Introspector.decapitalize(name.stripPrefix("MergeStrategy"))
+        Introspector.decapitalize(name)
     }
 }

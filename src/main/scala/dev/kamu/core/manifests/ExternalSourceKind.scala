@@ -10,9 +10,36 @@ package dev.kamu.core.manifests
 
 import java.net.URI
 
+import org.apache.hadoop.fs.Path
+
+//////////////////////////////////////////////////////////////////////////////
+
 sealed trait ExternalSourceKind
 
-case class ExternalSourceFetchUrl(
-  /** Data source location */
-  url: URI
-) extends ExternalSourceKind
+object ExternalSourceKind {
+
+  case class FetchUrl(
+    /** Data source location */
+    url: URI,
+    /** Caching behavior settings */
+    cache: CachingKind = CachingKind.Default()
+  ) extends ExternalSourceKind
+
+  case class FetchFilesGlob(
+    /** Glob for data source files */
+    path: Path,
+    /** Caching behavior for the individual files */
+    cache: CachingKind = CachingKind.Default()
+  ) extends ExternalSourceKind
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+sealed trait CachingKind
+
+object CachingKind {
+  case class Default() extends CachingKind
+
+  case class Forever() extends CachingKind
+}

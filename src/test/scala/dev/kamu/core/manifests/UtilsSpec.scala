@@ -27,6 +27,8 @@ class UtilsSpec extends FlatSpec {
       |    fetch:
       |      kind: fetchUrl
       |      url: ftp://kamu.dev/test.zip
+      |      cache:
+      |        kind: forever
       |    prepare:
       |    - kind: decompress
       |      format: zip
@@ -55,18 +57,19 @@ class UtilsSpec extends FlatSpec {
           id = DatasetID("kamu.test"),
           rootPollingSource = Some(
             RootPollingSource(
-              fetch = ExternalSourceFetchUrl(
-                url = URI.create("ftp://kamu.dev/test.zip")
+              fetch = ExternalSourceKind.FetchUrl(
+                url = URI.create("ftp://kamu.dev/test.zip"),
+                cache = CachingKind.Forever()
               ),
               prepare = Vector(
-                PrepStepDecompress(
+                PrepStepKind.Decompress(
                   format = "zip",
                   subPathRegex = Some("data_*.csv")
                 )
               ),
-              read = ReaderGeneric(
+              read = ReaderKind.Generic(
                 name = "csv",
-                options = ReaderGeneric.DEFAULT_READER_OPTIONS + ("header" -> "true")
+                options = ReaderKind.Generic.DEFAULT_READER_OPTIONS + ("header" -> "true")
               ),
               preprocess = Vector(
                 ProcessingStepSQL(
@@ -74,7 +77,7 @@ class UtilsSpec extends FlatSpec {
                   query = "SELECT * FROM input"
                 )
               ),
-              merge = MergeStrategySnapshot(primaryKey = Vector("id"))
+              merge = MergeStrategyKind.Snapshot(primaryKey = Vector("id"))
             )
           )
         )
