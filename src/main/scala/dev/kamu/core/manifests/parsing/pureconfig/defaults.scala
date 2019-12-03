@@ -17,6 +17,7 @@ import java.beans.Introspector
 import dev.kamu.core.manifests.{
   CachingKind,
   DerivativeInput,
+  EventTimeKind,
   ExternalSourceKind,
   MergeStrategyKind,
   PrepStepKind,
@@ -48,6 +49,12 @@ package object defaults {
 
   implicit val externalSourceKindHint =
     new FieldCoproductHint[ExternalSourceKind]("kind") {
+      override protected def fieldValue(name: String) =
+        Introspector.decapitalize(name)
+    }
+
+  implicit val eventTimeKindHint =
+    new FieldCoproductHint[EventTimeKind]("kind") {
       override protected def fieldValue(name: String) =
         Introspector.decapitalize(name)
     }

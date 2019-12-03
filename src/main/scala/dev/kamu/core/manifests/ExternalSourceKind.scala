@@ -14,23 +14,48 @@ import org.apache.hadoop.fs.Path
 
 //////////////////////////////////////////////////////////////////////////////
 
-sealed trait ExternalSourceKind
+sealed trait ExternalSourceKind {
+
+  /** Where the event time should be taken from */
+  def eventTime: Option[EventTimeKind]
+
+  /** Caching behavior for the individual files */
+  def cache: Option[CachingKind]
+}
 
 object ExternalSourceKind {
 
   case class FetchUrl(
     /** Data source location */
     url: URI,
-    /** Caching behavior settings */
-    cache: CachingKind = CachingKind.Default()
+    eventTime: Option[EventTimeKind] = None,
+    cache: Option[CachingKind] = None
   ) extends ExternalSourceKind
 
   case class FetchFilesGlob(
     /** Glob for data source files */
     path: Path,
-    /** Caching behavior for the individual files */
-    cache: CachingKind = CachingKind.Default()
+    eventTime: Option[EventTimeKind] = None,
+    cache: Option[CachingKind] = None
   ) extends ExternalSourceKind
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+sealed trait EventTimeKind
+
+object EventTimeKind {
+
+  case class FromSystemTime(
+    ) extends EventTimeKind
+
+  case class FromPath(
+    /** Regular expression where first group contains the timestamp string */
+    pattern: String,
+    /** Format of the expected timestamp in java.text.SimpleDateFormat form */
+    timestampFormat: String
+  ) extends EventTimeKind
 
 }
 
@@ -39,7 +64,7 @@ object ExternalSourceKind {
 sealed trait CachingKind
 
 object CachingKind {
-  case class Default() extends CachingKind
 
   case class Forever() extends CachingKind
+
 }

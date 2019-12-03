@@ -10,6 +10,7 @@ package dev.kamu.core.manifests
 
 case class DatasetVocabulary(
   systemTimeColumn: String = "systemTime",
+  eventTimeColumn: String = "eventTime",
   lastUpdatedTimeSystemColumn: String = "lastUpdatedSys",
   observationColumn: String = "observed",
   obsvAdded: String = "I",

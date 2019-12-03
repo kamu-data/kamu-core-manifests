@@ -59,7 +59,7 @@ class UtilsSpec extends FlatSpec {
             RootPollingSource(
               fetch = ExternalSourceKind.FetchUrl(
                 url = URI.create("ftp://kamu.dev/test.zip"),
-                cache = CachingKind.Forever()
+                cache = Some(CachingKind.Forever())
               ),
               prepare = Vector(
                 PrepStepKind.Decompress(
