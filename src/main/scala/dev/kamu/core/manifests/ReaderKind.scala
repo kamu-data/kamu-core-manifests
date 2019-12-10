@@ -38,16 +38,6 @@ object ReaderKind {
 
     override def asGeneric(): ReaderKind = this
 
-    override def postLoad(): ReaderKind = {
-      copy(options = Generic.DEFAULT_READER_OPTIONS ++ options)
-    }
-
-  }
-
-  object Generic {
-    val DEFAULT_READER_OPTIONS: Map[String, String] = Map(
-      "mode" -> "FAILFAST"
-    )
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -69,7 +59,7 @@ object ReaderKind {
     override def asGeneric(): ReaderKind = {
       Generic(
         name = "csv",
-        options = Generic.DEFAULT_READER_OPTIONS ++ Map(
+        options = Map(
           "charset" -> charset,
           "comment" -> comment,
           "delimiter" -> delimiter,
@@ -107,7 +97,7 @@ object ReaderKind {
     override def asGeneric(): ReaderKind = {
       Generic(
         name = "json",
-        options = Generic.DEFAULT_READER_OPTIONS ++ Map(
+        options = Map(
           "multiLine" -> (if (multiline) "true" else "false"),
           "primitivesAsString" -> (if (primitivesAsString) "true" else "false")
         ) ++ (

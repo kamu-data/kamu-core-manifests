@@ -12,6 +12,7 @@ case class DatasetVocabulary(
   systemTimeColumn: String = "systemTime",
   eventTimeColumn: String = "eventTime",
   lastUpdatedTimeSystemColumn: String = "lastUpdatedSys",
+  corruptRecordColumn: String = "__corruptRecord__",
   observationColumn: String = "observed",
   obsvAdded: String = "I",
   obsvChanged: String = "U",

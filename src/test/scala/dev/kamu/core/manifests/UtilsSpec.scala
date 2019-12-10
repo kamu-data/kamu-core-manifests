@@ -69,7 +69,7 @@ class UtilsSpec extends FlatSpec {
               ),
               read = ReaderKind.Generic(
                 name = "csv",
-                options = ReaderKind.Generic.DEFAULT_READER_OPTIONS + ("header" -> "true")
+                options = Map("header" -> "true")
               ),
               preprocess = Vector(
                 ProcessingStepSQL(
