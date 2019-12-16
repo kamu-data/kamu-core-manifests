@@ -43,16 +43,45 @@ object ReaderKind {
   //////////////////////////////////////////////////////////////////////////////
 
   case class Csv(
-    charset: String = "UTF-8",
-    comment: String = "#",
-    dateFormat: String = "",
-    delimiter: String = ",",
-    escape: String = "\\",
-    header: Boolean = false,
-    inferSchema: Boolean = false,
-    multiline: Boolean = false,
-    nullValue: String = "",
-    quote: String = "\"",
+    /** Sets a single character as a separator for each field and value */
+    sep: Option[String],
+    /** Decodes the CSV files by the given encoding type */
+    encoding: Option[String],
+    /** Sets a single character used for escaping quoted values where the separator can be part of the value.
+      * Set an empty string to turn off quotations. */
+    quote: Option[String],
+    /** Sets a single character used for escaping quotes inside an already quoted value */
+    escape: Option[String],
+    /** Sets a single character used for skipping lines beginning with this character */
+    comment: Option[String],
+    /** Use the first line as names of columns */
+    header: Option[Boolean],
+    /** If it is set to true, the specified or inferred schema will be forcibly applied to datasource files,
+      * and headers in CSV files will be ignored. If the option is set to false, the schema will be validated against
+      * all headers in CSV files in the case when the header option is set to true. */
+    enforceSchema: Option[Boolean],
+    /** Infers the input schema automatically from data. It requires one extra pass over the data. */
+    inferSchema: Option[Boolean],
+    /** A flag indicating whether or not leading whitespaces from values being read should be skipped */
+    ignoreLeadingWhiteSpace: Option[Boolean],
+    /** A flag indicating whether or not trailing whitespaces from values being read should be skipped */
+    ignoreTrailingWhiteSpace: Option[Boolean],
+    /** Sets the string representation of a null value */
+    nullValue: Option[String],
+    /** Sets the string representation of an empty value */
+    emptyValue: Option[String],
+    /** Sets the string representation of a non-number value */
+    nanValue: Option[String],
+    /** Sets the string representation of a positive infinity value */
+    positiveInf: Option[String],
+    /** Sets the string representation of a negative infinity value */
+    negativeInf: Option[String],
+    /** Sets the string that indicates a date format */
+    dateFormat: Option[String],
+    /** Sets the string that indicates a timestamp format */
+    timestampFormat: Option[String],
+    /** Parse one record, which may span multiple lines */
+    multiLine: Option[Boolean],
     /** A DDL-formatted schema */
     schema: Vector[String] = Vector.empty
   ) extends ReaderKind {
@@ -60,19 +89,28 @@ object ReaderKind {
       Generic(
         name = "csv",
         options = Map(
-          "charset" -> charset,
-          "comment" -> comment,
-          "delimiter" -> delimiter,
+          "sep" -> sep,
+          "encoding" -> encoding,
+          "quote" -> quote,
           "escape" -> escape,
-          "header" -> (if (header) "true" else "false"),
-          "inferSchema" -> (if (inferSchema) "true" else "false"),
-          "multiline" -> (if (multiline) "true" else "false"),
+          "comment" -> comment,
+          "header" -> header,
+          "enforceSchema" -> enforceSchema,
+          "inferSchema" -> inferSchema,
+          "ignoreLeadingWhiteSpace" -> ignoreLeadingWhiteSpace,
+          "ignoreTrailingWhiteSpace" -> ignoreTrailingWhiteSpace,
           "nullValue" -> nullValue,
-          "quote" -> quote
-        ) ++ (
-          if (dateFormat.nonEmpty) Map("dateFormat" -> dateFormat)
-          else Map.empty
-        ),
+          "emptyValue" -> emptyValue,
+          "nanValue" -> nanValue,
+          "positiveInf" -> positiveInf,
+          "negativeInf" -> negativeInf,
+          "dateFormat" -> dateFormat,
+          "timestampFormat" -> timestampFormat,
+          "multiLine" -> multiLine
+        ).collect({
+          case (k, Some(s: String))  => k -> s
+          case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
+        }),
         schema = schema
       )
     }
@@ -82,15 +120,15 @@ object ReaderKind {
 
   case class Json(
     /** Sets the string that indicates a date format */
-    dateFormat: String = "",
+    dateFormat: Option[String],
     /** Allows to forcibly set one of standard basic or extended encoding */
-    encoding: String = "",
+    encoding: Option[String],
     /** Parse one record, which may span multiple lines, per file */
-    multiline: Boolean = false,
+    multiLine: Option[Boolean],
     /** Infers all primitive values as a string type */
-    primitivesAsString: Boolean = false,
+    primitivesAsString: Option[Boolean],
     /** Sets the string that indicates a timestamp format */
-    timestampFormat: String = "",
+    timestampFormat: Option[String],
     /** A DDL-formatted schema */
     schema: Vector[String] = Vector.empty
   ) extends ReaderKind {
@@ -98,19 +136,15 @@ object ReaderKind {
       Generic(
         name = "json",
         options = Map(
-          "multiLine" -> (if (multiline) "true" else "false"),
-          "primitivesAsString" -> (if (primitivesAsString) "true" else "false")
-        ) ++ (
-          if (dateFormat.nonEmpty) Map("dateFormat" -> dateFormat)
-          else Map.empty
-        ) ++ (
-          if (encoding.nonEmpty) Map("encoding" -> encoding)
-          else Map.empty
-        ) ++ (
-          if (timestampFormat.nonEmpty)
-            Map("timestampFormat" -> timestampFormat)
-          else Map.empty
-        ),
+          "dateFormat" -> dateFormat,
+          "encoding" -> encoding,
+          "multiLine" -> multiLine,
+          "primitivesAsString" -> primitivesAsString,
+          "timestampFormat" -> timestampFormat
+        ).collect({
+          case (k, Some(s: String))  => k -> s
+          case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
+        }),
         schema = schema
       )
     }
