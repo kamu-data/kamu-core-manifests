@@ -95,7 +95,7 @@ object ReaderKind {
           "escape" -> escape,
           "comment" -> comment,
           "header" -> header,
-          "enforceSchema" -> enforceSchema,
+          "enforceSchema" -> enforceSchema.orElse(Some(false)),
           "inferSchema" -> inferSchema,
           "ignoreLeadingWhiteSpace" -> ignoreLeadingWhiteSpace,
           "ignoreTrailingWhiteSpace" -> ignoreTrailingWhiteSpace,
