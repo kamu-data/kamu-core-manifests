@@ -20,7 +20,9 @@ case class Dataset(
   /** If defined contains information about the derivative data source */
   derivativeSource: Option[DerivativeSource] = None,
   /** If defined contains a reference to an existing dataset stored remotely */
-  remoteSource: Option[RemoteSource] = None
+  remoteSource: Option[RemoteSource] = None,
+  /** Dataset vocabulary */
+  vocabulary: Option[DatasetVocabularyOverrides] = None
 ) extends Resource[Dataset] {
 
   Seq(rootPollingSource, derivativeSource, remoteSource).count(_.isDefined) match {

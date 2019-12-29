@@ -9,12 +9,36 @@
 package dev.kamu.core.manifests
 
 case class DatasetVocabulary(
-  systemTimeColumn: String = "systemTime",
-  eventTimeColumn: String = "eventTime",
-  lastUpdatedTimeSystemColumn: String = "lastUpdatedSys",
-  corruptRecordColumn: String = "__corruptRecord__",
+  systemTimeColumn: String = "system_time",
+  eventTimeColumn: String = "event_time",
+  corruptRecordColumn: String = "__corrupt_record__",
   observationColumn: String = "observed",
   obsvAdded: String = "I",
   obsvChanged: String = "U",
   obsvRemoved: String = "D"
-) extends Resource[DatasetVocabulary]
+) extends Resource[DatasetVocabulary] {}
+
+case class DatasetVocabularyOverrides(
+  systemTimeColumn: Option[String] = None,
+  eventTimeColumn: Option[String] = None,
+  lastUpdatedTimeSystemColumn: Option[String] = None,
+  corruptRecordColumn: Option[String] = None,
+  observationColumn: Option[String] = None,
+  obsvAdded: Option[String] = None,
+  obsvChanged: Option[String] = None,
+  obsvRemoved: Option[String] = None
+) {
+  def asDatasetVocabulary(): DatasetVocabulary = {
+    val vocab = DatasetVocabulary()
+    vocab.copy(
+      systemTimeColumn = systemTimeColumn.getOrElse(vocab.systemTimeColumn),
+      eventTimeColumn = eventTimeColumn.getOrElse(vocab.eventTimeColumn),
+      corruptRecordColumn =
+        corruptRecordColumn.getOrElse(vocab.corruptRecordColumn),
+      observationColumn = observationColumn.getOrElse(vocab.observationColumn),
+      obsvAdded = obsvAdded.getOrElse(vocab.obsvAdded),
+      obsvChanged = obsvChanged.getOrElse(vocab.obsvChanged),
+      obsvRemoved = obsvRemoved.getOrElse(vocab.obsvRemoved)
+    )
+  }
+}
