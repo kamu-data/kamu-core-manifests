@@ -35,6 +35,12 @@ package object defaults {
       allowUnknownKeys = false
     )
 
+  implicit val uriReader = ConfigReader[String]
+    .map(URI.create)
+
+  implicit val uriWriter = ConfigWriter[String]
+    .contramap((uri: URI) => uri.toString)
+
   implicit val pathReader = ConfigReader[String]
     .map(s => new Path(URI.create(s)))
 

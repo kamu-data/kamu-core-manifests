@@ -8,7 +8,15 @@
 
 package dev.kamu.core.manifests
 
-case class RemoteSource(
-  /** ID of the remote volume the data is sourced from */
-  volumeID: VolumeID
-) extends Resource[RemoteSource]
+import java.net.URI
+
+case class VolumeID(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class Volume(
+  /** ID of the volume */
+  id: VolumeID,
+  /** Location of the volume */
+  url: URI
+) extends Resource[Volume]
