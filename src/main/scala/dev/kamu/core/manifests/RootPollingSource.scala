@@ -16,7 +16,7 @@ case class RootPollingSource(
   /** Defines how data is read into structured format (see [[ReaderKind]]) */
   read: ReaderKind,
   /** Pre-processing steps to shape the data */
-  preprocess: Vector[ProcessingStepSQL] = Vector.empty,
+  preprocess: Vector[ProcessingStepKind] = Vector.empty,
   /** Determines how newly-ingested data should be merged with existing history (see [[MergeStrategyKind]]) */
   merge: MergeStrategyKind,
   /** Collapse partitions of the result to specified number.

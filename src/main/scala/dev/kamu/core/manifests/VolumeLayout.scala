@@ -12,8 +12,8 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import dev.kamu.core.utils.fs._
 
 case class VolumeLayout(
-  /** Directory that contains all definitions of the datasets contained in this volume  */
-  datasetsDir: Path,
+  /** Directory that contains metadata of all datasets contained in this volume  */
+  metadataDir: Path,
   /** Directory that contains processing checkpoints */
   checkpointsDir: Path,
   /** Directory that stores the actual data */
@@ -23,12 +23,12 @@ case class VolumeLayout(
 ) extends Resource[VolumeLayout] {
 
   def allDirs: Seq[Path] = {
-    Seq(datasetsDir, checkpointsDir, dataDir, cacheDir)
+    Seq(metadataDir, checkpointsDir, dataDir, cacheDir)
   }
 
   def relativeTo(path: Path): VolumeLayout = {
     copy(
-      datasetsDir = path.resolve(datasetsDir),
+      metadataDir = path.resolve(metadataDir),
       checkpointsDir = path.resolve(checkpointsDir),
       dataDir = path.resolve(dataDir),
       cacheDir = path.resolve(cacheDir)
@@ -37,7 +37,7 @@ case class VolumeLayout(
 
   def toAbsolute(fs: FileSystem): VolumeLayout = {
     copy(
-      datasetsDir = fs.toAbsolute(datasetsDir),
+      metadataDir = fs.toAbsolute(metadataDir),
       checkpointsDir = fs.toAbsolute(checkpointsDir),
       dataDir = fs.toAbsolute(dataDir),
       cacheDir = fs.toAbsolute(cacheDir)

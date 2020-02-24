@@ -8,17 +8,16 @@
 
 package dev.kamu.core.manifests.parsing.pureconfig
 
-import java.io.{InputStream, OutputStream, PrintWriter}
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream, PrintWriter}
+import java.nio.charset.StandardCharsets
 
+import dev.kamu.core.manifests.ResourceBase
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 
 import scala.reflect.ClassTag
 
-import dev.kamu.core.manifests.ResourceBase
-
 package object yaml {
   import pureconfig._
-  import pureconfig.generic._
   import pureconfig.module.yaml.loadYamlOrThrow
 
   def load[T <: ResourceBase[T]: ClassTag](inputStream: InputStream)(
@@ -49,5 +48,13 @@ package object yaml {
     yaml.dump(configValue.unwrapped(), writer)
 
     writer.flush()
+  }
+
+  def saveStr[T <: ResourceBase[T]: ClassTag](obj: T)(
+    implicit derivation: Derivation[ConfigWriter[T]]
+  ): String = {
+    val stream = new ByteArrayOutputStream()
+    save(obj, stream)
+    new String(stream.toByteArray, StandardCharsets.UTF_8)
   }
 }

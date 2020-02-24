@@ -9,18 +9,20 @@
 package dev.kamu.core.manifests
 
 import java.net.URI
+import java.time.Instant
 
 import org.scalatest._
 import dev.kamu.core.manifests.parsing.pureconfig.yaml
 import yaml.defaults._
 import pureconfig.generic.auto._
+import spire.math.Interval
 
 class UtilsSpec extends FlatSpec {
 
   val VALID_ROOT_POLLING_DATASET =
     """
       |apiVersion: 1
-      |kind: Dataset
+      |kind: DatasetSnapshot
       |content:
       |  id: kamu.test
       |  rootPollingSource:
@@ -39,7 +41,7 @@ class UtilsSpec extends FlatSpec {
       |      options:
       |        header: 'true'
       |    preprocess:
-      |    - view: output
+      |    - kind: sparkSQL
       |      query: SELECT * FROM input
       |    merge:
       |      kind: snapshot
@@ -48,12 +50,12 @@ class UtilsSpec extends FlatSpec {
     """.stripMargin
 
   "YAML utils" should "successfully load root dataset manifest" in {
-    val ds = yaml.load[Manifest[Dataset]](VALID_ROOT_POLLING_DATASET)
+    val ds = yaml.load[Manifest[DatasetSnapshot]](VALID_ROOT_POLLING_DATASET)
     assert(
       ds == Manifest(
         apiVersion = 1,
-        kind = "Dataset",
-        content = Dataset(
+        kind = "DatasetSnapshot",
+        content = DatasetSnapshot(
           id = DatasetID("kamu.test"),
           rootPollingSource = Some(
             RootPollingSource(
@@ -72,8 +74,8 @@ class UtilsSpec extends FlatSpec {
                 options = Map("header" -> "true")
               ),
               preprocess = Vector(
-                ProcessingStepSQL(
-                  view = "output",
+                ProcessingStepKind.SparkSQL(
+                  alias = None,
                   query = "SELECT * FROM input"
                 )
               ),
@@ -88,26 +90,27 @@ class UtilsSpec extends FlatSpec {
   val VALID_DERIVATIVE_STREAMING_DATASET =
     """
       |apiVersion: 1
-      |kind: Dataset
+      |kind: DatasetSnapshot
       |content:
       |  id: com.naturalearthdata.countries.admin0
       |  derivativeSource:
       |    inputs:
       |      - id: com.naturalearthdata.countries.10m.admin0
       |      - id: com.naturalearthdata.countries.50m.admin0
-      |        mode: batch
       |    steps:
-      |      - view: com.naturalearthdata.countries.admin0
+      |      - kind: sparkSQL
+      |        alias: com.naturalearthdata.countries.admin0
       |        query: SOME_SQL
     """.stripMargin
 
   it should "successfully load derivative dataset manifest" in {
-    val ds = yaml.load[Manifest[Dataset]](VALID_DERIVATIVE_STREAMING_DATASET)
+    val ds =
+      yaml.load[Manifest[DatasetSnapshot]](VALID_DERIVATIVE_STREAMING_DATASET)
     assert(
       ds == Manifest(
         apiVersion = 1,
-        kind = "Dataset",
-        content = Dataset(
+        kind = "DatasetSnapshot",
+        content = DatasetSnapshot(
           id = DatasetID("com.naturalearthdata.countries.admin0"),
           derivativeSource = Some(
             DerivativeSource(
@@ -116,16 +119,63 @@ class UtilsSpec extends FlatSpec {
                   DatasetID("com.naturalearthdata.countries.10m.admin0")
                 ),
                 DerivativeInput(
-                  DatasetID("com.naturalearthdata.countries.50m.admin0"),
-                  DerivativeInput.Mode.Batch
+                  DatasetID("com.naturalearthdata.countries.50m.admin0")
                 )
               ),
               steps = Vector(
-                ProcessingStepSQL(
-                  view = "com.naturalearthdata.countries.admin0",
+                ProcessingStepKind.SparkSQL(
+                  alias = Some("com.naturalearthdata.countries.admin0"),
                   query = "SOME_SQL"
                 )
               )
+            )
+          )
+        )
+      )
+    )
+  }
+
+  val VALID_METADATA_BLOCK =
+    """
+      |apiVersion: 1
+      |kind: MetadataBlock
+      |content:
+      |  blockHash: ddeeaaddbbeeff
+      |  prevBlockHash: ffeebbddaaeedd
+      |  systemTime: '1970-01-01T00:00:00.000Z'
+      |  outputDataInterval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
+      |  outputDataHash: ffaabb
+      |  inputDataIntervals:
+      |  - id: A
+      |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
+      |  - id: B
+      |    interval: '()'
+    """.stripMargin
+
+  it should "successfully load metadata block manifest" in {
+    val block = yaml.load[Manifest[MetadataBlock]](VALID_METADATA_BLOCK)
+    assert(
+      block == Manifest(
+        apiVersion = 1,
+        kind = "MetadataBlock",
+        content = MetadataBlock(
+          blockHash = "ddeeaaddbbeeff",
+          prevBlockHash = "ffeebbddaaeedd",
+          systemTime = Instant.ofEpochMilli(0),
+          outputDataInterval = Interval.point(Instant.ofEpochMilli(0)),
+          outputDataHash = "ffaabb",
+          inputDataIntervals = Vector(
+            InputDataSlice(
+              DatasetID("A"),
+              Interval
+                .openLower(
+                  Instant.ofEpochSecond(60),
+                  Instant.ofEpochSecond(120)
+                )
+            ),
+            InputDataSlice(
+              DatasetID("B"),
+              Interval.empty
             )
           )
         )
