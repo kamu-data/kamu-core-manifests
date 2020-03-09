@@ -19,7 +19,6 @@ import dev.kamu.core.manifests._
 import org.apache.hadoop.fs.{FileSystem, Path}
 import dev.kamu.core.utils.fs._
 import pureconfig.{ConfigReader, ConfigWriter, Derivation}
-import spire.math.Interval
 
 import scala.reflect.ClassTag
 
@@ -29,8 +28,6 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
     val initialBlock = MetadataBlock(
       prevBlockHash = "",
       systemTime = systemTime,
-      outputDataInterval = Interval.empty,
-      outputDataHash = "",
       rootPollingSource = ds.rootPollingSource,
       derivativeSource = ds.derivativeSource
     ).hashed()
@@ -39,7 +36,10 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
       id = ds.id,
       kind = ds.kind,
       datasetDependencies = ds.dependsOn.toSet,
-      vocabulary = ds.vocabulary
+      vocabulary = ds.vocabulary,
+      lastModified = systemTime,
+      numRecords = 0,
+      dataSize = 0
     )
 
     try {
@@ -62,6 +62,14 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
 
   def getSummary(): DatasetSummary = {
     loadResource[DatasetSummary](summaryPath)
+  }
+
+  def updateSummary(
+    update: DatasetSummary => DatasetSummary
+  ): DatasetSummary = {
+    val newSummary = update(getSummary())
+    saveResource(newSummary, summaryPath)
+    newSummary
   }
 
   def getSnapshot(): DatasetSnapshot = {

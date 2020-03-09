@@ -8,6 +8,8 @@
 
 package dev.kamu.core.manifests
 
+import java.time.Instant
+
 /** Represents a snapshot of the dataset definition in a single point in time */
 case class DatasetSummary(
   /** Unique identifier of the dataset */
@@ -17,5 +19,11 @@ case class DatasetSummary(
   /** Set of immediate dependencies of this dataset */
   datasetDependencies: Set[DatasetID] = Set.empty,
   /** Dataset vocabulary */
-  vocabulary: Option[DatasetVocabularyOverrides] = None
+  vocabulary: Option[DatasetVocabularyOverrides] = None,
+  /** The last time when this dataset was modified */
+  lastModified: Instant,
+  /** Total number of records in the dataset */
+  numRecords: Long,
+  /** Total size of data on disk */
+  dataSize: Long
 ) extends Resource[DatasetSummary] {}

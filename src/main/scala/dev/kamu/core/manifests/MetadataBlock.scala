@@ -19,23 +19,23 @@ case class MetadataBlock(
   prevBlockHash: String,
   /** System time when this block was written */
   systemTime: Instant,
-  /** Interval of output data this block relates to (in system time) */
-  outputDataInterval: Interval[Instant],
-  /** Hash sum of the output data slice this block relates to */
-  outputDataHash: String,
+  /** Properties of output data written during this update (if any) */
+  outputSlice: Option[DataSlice] = None,
   //** Describes the output data schema (can be omitted if it doesn't differ from the previous block) */
   // outputDataSchema: Option[Schema])
-  /** Defines input data slices used in this block */
-  inputDataIntervals: Vector[InputDataSlice] = Vector.empty,
+  /** Defines input data slices used in this block (if any) */
+  inputSlices: Map[String, DataSlice] = Map.empty,
   /** If metadata relates to a root dataset - defines the external data source and the transformation steps */
   rootPollingSource: Option[RootPollingSource] = None,
   /** If metadata relates to a derivative dataset - defines the sources and applied transformations */
   derivativeSource: Option[DerivativeSource] = None
 ) extends Resource[MetadataBlock]
 
-case class InputDataSlice(
-  /** ID of the input dataset */
-  id: DatasetID,
-  /** Interval that defines the particular slice of input data used in this block */
-  interval: Interval[Instant]
+case class DataSlice(
+  /** Hash sum of the output data slice this block relates to */
+  hash: String,
+  /** Interval that defines the boundaries of data read or produces within a block */
+  interval: Interval[Instant],
+  /** Number of records in this slice */
+  numRecords: Long
 )

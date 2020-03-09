@@ -143,13 +143,19 @@ class UtilsSpec extends FlatSpec {
       |  blockHash: ddeeaaddbbeeff
       |  prevBlockHash: ffeebbddaaeedd
       |  systemTime: '1970-01-01T00:00:00.000Z'
-      |  outputDataInterval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
-      |  outputDataHash: ffaabb
-      |  inputDataIntervals:
-      |  - id: A
-      |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
-      |  - id: B
-      |    interval: '()'
+      |  outputSlice:
+      |    hash: ffaabb
+      |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
+      |    numRecords: 10
+      |  inputSlices:
+      |    A:
+      |      hash: aa
+      |      interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
+      |      numRecords: 10
+      |    B:
+      |      hash: zz
+      |      interval: '()'
+      |      numRecords: 0
     """.stripMargin
 
   it should "successfully load metadata block manifest" in {
@@ -162,20 +168,27 @@ class UtilsSpec extends FlatSpec {
           blockHash = "ddeeaaddbbeeff",
           prevBlockHash = "ffeebbddaaeedd",
           systemTime = Instant.ofEpochMilli(0),
-          outputDataInterval = Interval.point(Instant.ofEpochMilli(0)),
-          outputDataHash = "ffaabb",
-          inputDataIntervals = Vector(
-            InputDataSlice(
-              DatasetID("A"),
-              Interval
+          outputSlice = Some(
+            DataSlice(
+              hash = "ffaabb",
+              interval = Interval.point(Instant.ofEpochMilli(0)),
+              numRecords = 10
+            )
+          ),
+          inputSlices = Map(
+            "A" -> DataSlice(
+              hash = "aa",
+              interval = Interval
                 .openLower(
                   Instant.ofEpochSecond(60),
                   Instant.ofEpochSecond(120)
-                )
+                ),
+              numRecords = 10
             ),
-            InputDataSlice(
-              DatasetID("B"),
-              Interval.empty
+            "B" -> DataSlice(
+              hash = "zz",
+              interval = Interval.empty,
+              numRecords = 0
             )
           )
         )
