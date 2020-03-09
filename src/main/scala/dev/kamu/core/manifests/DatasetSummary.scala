@@ -20,8 +20,8 @@ case class DatasetSummary(
   datasetDependencies: Set[DatasetID] = Set.empty,
   /** Dataset vocabulary */
   vocabulary: Option[DatasetVocabularyOverrides] = None,
-  /** The last time when this dataset was modified */
-  lastModified: Instant,
+  /** The last time when this dataset had new data */
+  lastPulled: Option[Instant],
   /** Total number of records in the dataset */
   numRecords: Long,
   /** Total size of data on disk */

@@ -37,7 +37,7 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
       kind = ds.kind,
       datasetDependencies = ds.dependsOn.toSet,
       vocabulary = ds.vocabulary,
-      lastModified = systemTime,
+      lastPulled = None,
       numRecords = 0,
       dataSize = 0
     )
