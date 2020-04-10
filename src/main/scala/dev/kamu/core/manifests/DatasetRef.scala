@@ -12,4 +12,4 @@ package dev.kamu.core.manifests
 case class DatasetRef(
   /** ID of the volume that contains the dataset */
   volumeID: VolumeID
-) extends Resource[DatasetRef]
+) extends Resource

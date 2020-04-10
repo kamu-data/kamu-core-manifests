@@ -17,7 +17,7 @@ import yaml.defaults._
 import pureconfig.generic.auto._
 import spire.math.Interval
 
-class UtilsSpec extends FlatSpec {
+class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_ROOT_POLLING_DATASET =
     """
@@ -41,8 +41,9 @@ class UtilsSpec extends FlatSpec {
       |      options:
       |        header: 'true'
       |    preprocess:
-      |    - kind: sparkSQL
-      |      query: SELECT * FROM input
+      |      engine: sparkSQL
+      |      queries:
+      |      - query: SELECT * FROM input
       |    merge:
       |      kind: snapshot
       |      primaryKey:
@@ -51,8 +52,9 @@ class UtilsSpec extends FlatSpec {
 
   "YAML utils" should "successfully load root dataset manifest" in {
     val ds = yaml.load[Manifest[DatasetSnapshot]](VALID_ROOT_POLLING_DATASET)
-    assert(
-      ds == Manifest(
+
+    ds should equal(
+      Manifest(
         apiVersion = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
@@ -73,18 +75,18 @@ class UtilsSpec extends FlatSpec {
                 name = "csv",
                 options = Map("header" -> "true")
               ),
-              preprocess = Vector(
-                ProcessingStepKind.SparkSQL(
-                  alias = None,
-                  query = "SELECT * FROM input"
-                )
-              ),
+              preprocess = ds.content.rootPollingSource.get.preprocess,
               merge = MergeStrategyKind.Snapshot(primaryKey = Vector("id"))
             )
           )
         )
       )
     )
+
+    ds.content.rootPollingSource.get.preprocessEngine should equal(
+      Some("sparkSQL")
+    )
+
   }
 
   val VALID_DERIVATIVE_STREAMING_DATASET =
@@ -97,17 +99,19 @@ class UtilsSpec extends FlatSpec {
       |    inputs:
       |      - id: com.naturalearthdata.countries.10m.admin0
       |      - id: com.naturalearthdata.countries.50m.admin0
-      |    steps:
-      |      - kind: sparkSQL
-      |        alias: com.naturalearthdata.countries.admin0
+      |    transform:
+      |      engine: sparkSQL
+      |      queries:
+      |      - alias: com.naturalearthdata.countries.admin0
       |        query: SOME_SQL
     """.stripMargin
 
   it should "successfully load derivative dataset manifest" in {
     val ds =
       yaml.load[Manifest[DatasetSnapshot]](VALID_DERIVATIVE_STREAMING_DATASET)
-    assert(
-      ds == Manifest(
+
+    ds should equal(
+      Manifest(
         apiVersion = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
@@ -122,17 +126,14 @@ class UtilsSpec extends FlatSpec {
                   DatasetID("com.naturalearthdata.countries.50m.admin0")
                 )
               ),
-              steps = Vector(
-                ProcessingStepKind.SparkSQL(
-                  alias = Some("com.naturalearthdata.countries.admin0"),
-                  query = "SOME_SQL"
-                )
-              )
+              transform = ds.content.derivativeSource.get.transform
             )
           )
         )
       )
     )
+
+    ds.content.derivativeSource.get.transformEngine should equal("sparkSQL")
   }
 
   val VALID_METADATA_BLOCK =

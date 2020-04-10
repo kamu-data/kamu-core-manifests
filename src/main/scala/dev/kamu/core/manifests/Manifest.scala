@@ -8,7 +8,7 @@
 
 package dev.kamu.core.manifests
 
-case class Manifest[T <: Resource[T]](
+case class Manifest[T <: Resource](
   /** Version of the application this manifest was written for.
     *
     * Tracking this version will allow us to attempt an upgrade of
@@ -24,17 +24,27 @@ case class Manifest[T <: Resource[T]](
   kind: String,
   /** Here goes the actual manifest data */
   content: T
-) extends ResourceBase[Manifest[T]] {
-  override def postLoad() = {
+) extends Resource {
+  override def postLoad(): AnyRef = {
     if (kind != content.resourceName)
       throw new RuntimeException(
         s"Got manifest for kind $kind but expected ${content.resourceName}"
       )
 
-    this.copy(content = content.postLoad())
+    this.copy(content = content.postLoad().asInstanceOf[T])
   }
 
-  override def preSave() = {
-    this.copy(content = content.preSave())
+  override def preSave(): AnyRef = {
+    this.copy(content = content.preSave().asInstanceOf[T])
+  }
+}
+
+object Manifest {
+  def apply[T <: Resource](resource: T): Manifest[T] = {
+    Manifest(
+      apiVersion = 1,
+      kind = resource.getClass.getSimpleName,
+      content = resource
+    )
   }
 }

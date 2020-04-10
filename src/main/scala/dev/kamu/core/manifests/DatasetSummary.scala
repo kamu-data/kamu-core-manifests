@@ -26,4 +26,4 @@ case class DatasetSummary(
   numRecords: Long,
   /** Total size of data on disk */
   dataSize: Long
-) extends Resource[DatasetSummary] {}
+) extends Resource {}

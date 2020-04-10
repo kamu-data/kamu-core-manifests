@@ -8,14 +8,38 @@
 
 package dev.kamu.core.manifests
 
+import com.typesafe.config.ConfigObject
+import pureconfig.error.{
+  ConfigReaderException,
+  ConfigReaderFailures,
+  ConvertFailure,
+  KeyNotFound
+}
+
 case class DerivativeSource(
   /** Datasets that will be used as sources for this derivative */
   inputs: Vector[DerivativeInput],
-  /** Processing steps that shape the data */
-  steps: Vector[ProcessingStepKind] = Vector.empty
-) extends Resource[DerivativeSource]
+  /** Engine-specific processing queries that shape the resulting data (see [[TransformKind]]) */
+  transform: ConfigObject
+  /** TODO: Output mode (e,g, Spark's Append vs Update)?  */
+) extends Resource {
+
+  override def postLoad(): AnyRef = {
+    if (!transform.containsKey("engine"))
+      throw new ConfigReaderException[DerivativeSource](
+        ConfigReaderFailures(ConvertFailure(KeyNotFound("engine"), None, ""))
+      )
+    super.postLoad()
+  }
+
+  def transformEngine: String = {
+    transform.get("engine").unwrapped().asInstanceOf[String]
+  }
+
+}
 
 case class DerivativeInput(
   /** ID of the input dataset */
   id: DatasetID
+  /** TODO: Watermarking configuration? */
 )

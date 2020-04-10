@@ -8,6 +8,14 @@
 
 package dev.kamu.core.manifests
 
+import com.typesafe.config.ConfigObject
+import pureconfig.error.{
+  ConfigReaderException,
+  ConfigReaderFailures,
+  ConvertFailure,
+  KeyNotFound
+}
+
 case class RootPollingSource(
   /** Determines where data is sourced from (see [[ExternalSourceKind]]) */
   fetch: ExternalSourceKind,
@@ -15,8 +23,8 @@ case class RootPollingSource(
   prepare: Vector[PrepStepKind] = Vector.empty,
   /** Defines how data is read into structured format (see [[ReaderKind]]) */
   read: ReaderKind,
-  /** Pre-processing steps to shape the data */
-  preprocess: Vector[ProcessingStepKind] = Vector.empty,
+  /** Pre-processing query that shapes the data (see [[TransformKind]]) */
+  preprocess: Option[ConfigObject] = None,
   /** Determines how newly-ingested data should be merged with existing history (see [[MergeStrategyKind]]) */
   merge: MergeStrategyKind,
   /** Collapse partitions of the result to specified number.
@@ -24,9 +32,17 @@ case class RootPollingSource(
     * If zero - the step will be skipped
     */
   coalesce: Int = 1
-) extends Resource[RootPollingSource] {
+) extends Resource {
 
-  override def postLoad(): RootPollingSource = {
+  override def postLoad(): AnyRef = {
+    if (preprocess.isDefined && !preprocess.get.containsKey("engine"))
+      throw new ConfigReaderException[DerivativeSource](
+        ConfigReaderFailures(ConvertFailure(KeyNotFound("engine"), None, ""))
+      )
     copy(read = read.postLoad())
+  }
+
+  def preprocessEngine: Option[String] = {
+    preprocess.map(_.get("engine").unwrapped().asInstanceOf[String])
   }
 }

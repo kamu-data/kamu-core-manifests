@@ -11,8 +11,10 @@ package dev.kamu.core.manifests.parsing.pureconfig
 import java.io.{ByteArrayOutputStream, InputStream, OutputStream, PrintWriter}
 import java.nio.charset.StandardCharsets
 
-import dev.kamu.core.manifests.ResourceBase
+import com.typesafe.config.{Config, ConfigObject}
+import dev.kamu.core.manifests.Resource
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
+import pureconfig.error.ConfigReaderException
 
 import scala.reflect.ClassTag
 
@@ -20,24 +22,34 @@ package object yaml {
   import pureconfig._
   import pureconfig.module.yaml.loadYamlOrThrow
 
-  def load[T <: ResourceBase[T]: ClassTag](inputStream: InputStream)(
+  def load[T <: Resource: ClassTag](inputStream: InputStream)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
     val str = scala.io.Source.fromInputStream(inputStream).mkString
     load[T](str)
   }
 
-  def load[T <: ResourceBase[T]: ClassTag](str: String)(
+  def load[T <: Resource: ClassTag](str: String)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
     val raw = loadYamlOrThrow[T](str)
-    raw.postLoad()
+    raw.postLoad().asInstanceOf[T]
   }
 
-  def save[T <: ResourceBase[T]: ClassTag](obj: T, outputStream: OutputStream)(
+  def load[T <: Resource: ClassTag](conf: Config)(
+    implicit reader: Derivation[ConfigReader[T]]
+  ): T = {
+    val raw = pureconfig.loadConfig[T](conf) match {
+      case Right(config)  => config
+      case Left(failures) => throw new ConfigReaderException[Config](failures)
+    }
+    raw.postLoad().asInstanceOf[T]
+  }
+
+  def save[T <: Resource: ClassTag](obj: T, outputStream: OutputStream)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): Unit = {
-    val raw = obj.preSave()
+    val raw = obj.preSave().asInstanceOf[T]
 
     val configValue = ConfigWriter[T].to(raw)
     val writer = new PrintWriter(outputStream)
@@ -50,11 +62,19 @@ package object yaml {
     writer.flush()
   }
 
-  def saveStr[T <: ResourceBase[T]: ClassTag](obj: T)(
+  def saveStr[T <: Resource: ClassTag](obj: T)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): String = {
     val stream = new ByteArrayOutputStream()
     save(obj, stream)
     new String(stream.toByteArray, StandardCharsets.UTF_8)
+  }
+
+  def saveObj[T <: Resource: ClassTag](obj: T)(
+    implicit derivation: Derivation[ConfigWriter[T]]
+  ): ConfigObject = {
+    val raw = obj.preSave().asInstanceOf[T]
+    val configValue = ConfigWriter[T].to(raw)
+    configValue.asInstanceOf[ConfigObject]
   }
 }

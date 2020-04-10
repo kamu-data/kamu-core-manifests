@@ -29,7 +29,7 @@ case class MetadataBlock(
   rootPollingSource: Option[RootPollingSource] = None,
   /** If metadata relates to a derivative dataset - defines the sources and applied transformations */
   derivativeSource: Option[DerivativeSource] = None
-) extends Resource[MetadataBlock]
+) extends Resource
 
 case class DataSlice(
   /** Hash sum of the output data slice this block relates to */

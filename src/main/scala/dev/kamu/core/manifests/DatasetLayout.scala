@@ -20,4 +20,4 @@ case class DatasetLayout(
   checkpointsDir: Path,
   /** Stores data that is not essential but can improve performance of operations like data polling */
   cacheDir: Path
-) extends Resource[DatasetLayout]
+) extends Resource

@@ -19,4 +19,4 @@ case class Volume(
   id: VolumeID,
   /** Location of the volume */
   url: URI
-) extends Resource[Volume]
+) extends Resource

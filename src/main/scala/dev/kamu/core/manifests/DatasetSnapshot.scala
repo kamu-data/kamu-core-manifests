@@ -18,7 +18,7 @@ case class DatasetSnapshot(
   derivativeSource: Option[DerivativeSource] = None,
   /** Dataset vocabulary */
   vocabulary: Option[DatasetVocabularyOverrides] = None
-) extends Resource[DatasetSnapshot] {
+) extends Resource {
 
   Seq(rootPollingSource, derivativeSource).count(_.isDefined) match {
     case 1 =>
@@ -44,8 +44,10 @@ case class DatasetSnapshot(
 
   override def postLoad(): DatasetSnapshot = {
     copy(
-      rootPollingSource = rootPollingSource.map(_.postLoad()),
-      derivativeSource = derivativeSource.map(_.postLoad())
+      rootPollingSource =
+        rootPollingSource.map(_.postLoad().asInstanceOf[RootPollingSource]),
+      derivativeSource =
+        derivativeSource.map(_.postLoad().asInstanceOf[DerivativeSource])
     )
   }
 }

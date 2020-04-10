@@ -16,7 +16,7 @@ case class DatasetVocabulary(
   obsvAdded: String = "I",
   obsvChanged: String = "U",
   obsvRemoved: String = "D"
-) extends Resource[DatasetVocabulary] {}
+) extends Resource {}
 
 case class DatasetVocabularyOverrides(
   systemTimeColumn: Option[String] = None,

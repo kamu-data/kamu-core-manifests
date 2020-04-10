@@ -131,18 +131,18 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
   // Helpers
   /////////////////////////////////////////////////////////////////////////////
 
-  protected def saveResource[T <: Resource[T]: ClassTag](obj: T, path: Path)(
+  protected def saveResource[T <: Resource: ClassTag](obj: T, path: Path)(
     implicit derivation: Derivation[ConfigWriter[Manifest[T]]]
   ): Unit = {
     val outputStream = fileSystem.create(path)
     try {
-      yaml.save(obj.asManifest, outputStream)
+      yaml.save(Manifest(obj), outputStream)
     } finally {
       outputStream.close()
     }
   }
 
-  protected def loadResource[T <: Resource[T]: ClassTag](path: Path)(
+  protected def loadResource[T <: Resource: ClassTag](path: Path)(
     implicit derivation: Derivation[ConfigReader[Manifest[T]]]
   ): T = {
     val inputStream = fileSystem.open(path)
