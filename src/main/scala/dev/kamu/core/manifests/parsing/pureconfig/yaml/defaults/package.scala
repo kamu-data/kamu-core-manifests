@@ -59,8 +59,8 @@ package object defaults {
         Introspector.decapitalize(name)
     }
 
-  implicit val fetchKindHint: FieldCoproductHint[FetchKind] =
-    new FieldCoproductHint[FetchKind]("kind") {
+  implicit val fetchKindHint: FieldCoproductHint[FetchSourceKind] =
+    new FieldCoproductHint[FetchSourceKind]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }

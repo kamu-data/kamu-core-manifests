@@ -28,8 +28,8 @@ object SourceKind {
     * - How to combine data ingested in the past with the new data - e.g. append as log or diff as a snapshot of the current state
     */
   case class Root(
-    /** Determines where data is sourced from (see [[FetchKind]]) */
-    fetch: FetchKind,
+    /** Determines where data is sourced from (see [[FetchSourceKind]]) */
+    fetch: FetchSourceKind,
     /** Defines how raw data is prepared before reading (see [[PrepStepKind]]) */
     prepare: Vector[PrepStepKind] = Vector.empty,
     /** Defines how data is read into structured format (see [[ReaderKind]]) */

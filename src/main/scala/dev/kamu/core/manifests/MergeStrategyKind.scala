@@ -30,7 +30,7 @@ object MergeStrategyKind {
     * A system time column will be added to the data to indicate the time
     * when the record was observed first by the system.
     *
-    * It relies on a user-specified primary key column to identify which records
+    * It relies on a user-specified primary key columns to identify which records
     * were already seen and not duplicate them.
     *
     * It will always preserve all columns from existing and new snapshots, so
@@ -56,8 +56,14 @@ object MergeStrategyKind {
     *   - "D" - when row disappears
     *   - "U" - whenever any row data has changed
     *
-    * It relies on a user-specified primary key column to correlate the rows
+    * It relies on a user-specified primary key columns to correlate the rows
     * between the two snapshots.
+    *
+    * The time when a snapshot was taken (event time) is usually captured in some
+    * form of metadata (e.g. in the name of the snapshot file, or in the caching
+    * headers). In order to populate the event time we rely on the [[FetchSourceKind]]
+    * to extract the event time from metadata. User then should specify the name
+    * of the event time column that will be populated from this value.
     *
     * If the data contains a column that is guaranteed to change whenever
     * any of the data columns changes (for example this can be a last
@@ -80,7 +86,50 @@ object MergeStrategyKind {
       * version, or a data hash. If not specified all data columns will be
       * compared one by one.
       */
-    compareColumns: Vector[String] = Vector.empty
-  ) extends MergeStrategyKind
+    compareColumns: Vector[String] = Vector.empty,
+    /** Name of the event time column that will be added to the data.
+      *
+      * Its value usually comes from the metadata extracted from the data source
+      * (see [[FetchSourceKind]]).
+      *
+      * Defaults to: "event_time"
+      */
+    eventTimeColumn: Option[String] = None,
+    /** Name of the observation type column that will be added to the data.
+      *
+      * Defaults to: "observed"
+      */
+    observationColumn: Option[String] = None,
+    /** Name of the observation type when the data with certain primary key
+      * is seen for the first time.
+      *
+      * Defaults to: "I"
+      */
+    obsvAdded: Option[String] = None,
+    /** Name of the observation type when the data with certain primary key
+      * has changed compared to the last time it was seen.
+      *
+      * Defaults to: "U"
+      */
+    obsvChanged: Option[String] = None,
+    /** Name of the observation type when the data with certain primary key
+      * has been seen before but now is missing from the snapshot.
+      *
+      * Defaults to: "D"
+      */
+    obsvRemoved: Option[String] = None
+  ) extends MergeStrategyKind {
+
+    def withDefaults(): Snapshot = {
+      copy(
+        eventTimeColumn = Some(eventTimeColumn.getOrElse("event_time")),
+        observationColumn = Some(observationColumn.getOrElse("observed")),
+        obsvAdded = Some(obsvAdded.getOrElse("I")),
+        obsvChanged = Some(obsvChanged.getOrElse("U")),
+        obsvRemoved = Some(obsvRemoved.getOrElse("D"))
+      )
+    }
+
+  }
 
 }

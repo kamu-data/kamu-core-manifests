@@ -11,7 +11,6 @@ package dev.kamu.core.manifests
 import java.net.URI
 import java.time.Instant
 
-import dev.kamu.core.manifests
 import org.scalatest._
 import dev.kamu.core.manifests.parsing.pureconfig.yaml
 import yaml.defaults._
@@ -29,7 +28,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |  source:
       |    kind: root
       |    fetch:
-      |      kind: fetchUrl
+      |      kind: url
       |      url: ftp://kamu.dev/test.zip
       |      cache:
       |        kind: forever
@@ -50,6 +49,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      kind: snapshot
       |      primaryKey:
       |      - id
+      |      eventTimeColumn: event_time
     """.stripMargin
 
   "YAML utils" should "successfully load root dataset manifest" in {
@@ -62,7 +62,7 @@ class UtilsSpec extends FlatSpec with Matchers {
         content = DatasetSnapshot(
           id = DatasetID("kamu.test"),
           source = SourceKind.Root(
-            fetch = FetchKind.FetchUrl(
+            fetch = FetchSourceKind.Url(
               url = URI.create("ftp://kamu.dev/test.zip"),
               cache = Some(CachingKind.Forever())
             ),
@@ -78,7 +78,10 @@ class UtilsSpec extends FlatSpec with Matchers {
             ),
             preprocess =
               ds.content.source.asInstanceOf[SourceKind.Root].preprocess,
-            merge = MergeStrategyKind.Snapshot(primaryKey = Vector("id"))
+            merge = MergeStrategyKind.Snapshot(
+              primaryKey = Vector("id"),
+              eventTimeColumn = Some("event_time")
+            )
           )
         )
       )
