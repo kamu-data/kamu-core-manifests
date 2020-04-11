@@ -149,14 +149,12 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
       |    numRecords: 10
       |  inputSlices:
-      |    A:
-      |      hash: aa
-      |      interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
-      |      numRecords: 10
-      |    B:
-      |      hash: zz
-      |      interval: '()'
-      |      numRecords: 0
+      |  - hash: aa
+      |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
+      |    numRecords: 10
+      |  - hash: zz
+      |    interval: '()'
+      |    numRecords: 0
     """.stripMargin
 
   it should "successfully load metadata block manifest" in {
@@ -176,8 +174,8 @@ class UtilsSpec extends FlatSpec with Matchers {
               numRecords = 10
             )
           ),
-          inputSlices = Map(
-            "A" -> DataSlice(
+          inputSlices = Vector(
+            DataSlice(
               hash = "aa",
               interval = Interval
                 .openLower(
@@ -186,7 +184,7 @@ class UtilsSpec extends FlatSpec with Matchers {
                 ),
               numRecords = 10
             ),
-            "B" -> DataSlice(
+            DataSlice(
               hash = "zz",
               interval = Interval.empty,
               numRecords = 0
