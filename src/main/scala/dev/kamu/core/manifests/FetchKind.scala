@@ -14,7 +14,7 @@ import org.apache.hadoop.fs.Path
 
 //////////////////////////////////////////////////////////////////////////////
 
-sealed trait ExternalSourceKind {
+sealed trait FetchKind {
 
   /** Where the event time should be taken from */
   def eventTime: Option[EventTimeKind]
@@ -23,21 +23,21 @@ sealed trait ExternalSourceKind {
   def cache: Option[CachingKind]
 }
 
-object ExternalSourceKind {
+object FetchKind {
 
   case class FetchUrl(
     /** Data source location */
     url: URI,
     eventTime: Option[EventTimeKind] = None,
     cache: Option[CachingKind] = None
-  ) extends ExternalSourceKind
+  ) extends FetchKind
 
   case class FetchFilesGlob(
     /** Glob for data source files */
     path: Path,
     eventTime: Option[EventTimeKind] = None,
     cache: Option[CachingKind] = None
-  ) extends ExternalSourceKind
+  ) extends FetchKind
 
 }
 

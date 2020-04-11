@@ -28,8 +28,7 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
     val initialBlock = MetadataBlock(
       prevBlockHash = "",
       systemTime = systemTime,
-      rootPollingSource = ds.rootPollingSource,
-      derivativeSource = ds.derivativeSource
+      source = Some(ds.source)
     ).hashed()
 
     val initialSummary = DatasetSummary(
@@ -75,30 +74,18 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
   def getSnapshot(): DatasetSnapshot = {
     val summary = getSummary()
 
-    val rootPollingSource =
-      if (summary.kind == DatasetKind.Root)
-        getBlocks()
-          .find(_.rootPollingSource.isDefined)
-          .map(_.rootPollingSource.get)
-      else
-        None
-
-    val derivativeSource =
-      if (summary.kind == DatasetKind.Derivative)
-        getBlocks()
-          .find(_.derivativeSource.isDefined)
-          .map(_.derivativeSource.get)
-      else
-        None
+    val source = getBlocks().reverse
+      .flatMap(_.source)
+      .head
 
     DatasetSnapshot(
       id = summary.id,
-      rootPollingSource = rootPollingSource,
-      derivativeSource = derivativeSource,
+      source = source,
       vocabulary = summary.vocabulary
     )
   }
 
+  /** Returns metadata blocks in historical order */
   def getBlocks(): Vector[MetadataBlock] = {
     val blocks = fileSystem
       .listStatus(blocksDir)

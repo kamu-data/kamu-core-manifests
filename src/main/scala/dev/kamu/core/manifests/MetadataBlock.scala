@@ -19,16 +19,14 @@ case class MetadataBlock(
   prevBlockHash: String,
   /** System time when this block was written */
   systemTime: Instant,
-  /** Properties of output data written during this update (if any) */
+  /** Properties of output data written during this update, if any */
   outputSlice: Option[DataSlice] = None,
   //** Describes the output data schema (can be omitted if it doesn't differ from the previous block) */
   // outputDataSchema: Option[Schema])
   /** Defines input data slices used in this block, if any (order corresponds to transform inputs) */
   inputSlices: Vector[DataSlice] = Vector.empty,
-  /** If metadata relates to a root dataset - defines the external data source and the transformation steps */
-  rootPollingSource: Option[RootPollingSource] = None,
-  /** If metadata relates to a derivative dataset - defines the sources and applied transformations */
-  derivativeSource: Option[DerivativeSource] = None
+  /** Contains the definition of the source of data when it changes */
+  source: Option[SourceKind] = None
 ) extends Resource
 
 case class DataSlice(

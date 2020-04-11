@@ -12,42 +12,27 @@ package dev.kamu.core.manifests
 case class DatasetSnapshot(
   /** Unique identifier of the dataset */
   id: DatasetID,
-  /** If defined contains information about the root data source */
-  rootPollingSource: Option[RootPollingSource] = None,
-  /** If defined contains information about the derivative data source */
-  derivativeSource: Option[DerivativeSource] = None,
+  /** Contains information about the source of data (see [[SourceKind]]) */
+  source: SourceKind,
   /** Dataset vocabulary */
   vocabulary: Option[DatasetVocabularyOverrides] = None
 ) extends Resource {
 
-  Seq(rootPollingSource, derivativeSource).count(_.isDefined) match {
-    case 1 =>
-    case _ =>
-      throw new ValidationException("Dataset must define exactly one source")
-  }
-
   def kind: DatasetKind = {
-    if (rootPollingSource.isDefined)
-      DatasetKind.Root
-    else if (derivativeSource.isDefined)
-      DatasetKind.Derivative
-    else
-      DatasetKind.Remote
+    source match {
+      case _: SourceKind.Root       => DatasetKind.Root
+      case _: SourceKind.Derivative => DatasetKind.Derivative
+    }
   }
 
   def dependsOn: Seq[DatasetID] = {
-    if (derivativeSource.isDefined)
-      derivativeSource.get.inputs.map(_.id)
-    else
-      Seq.empty
+    source match {
+      case d: SourceKind.Derivative => d.inputs.map(_.id)
+      case _                        => Seq.empty
+    }
   }
 
   override def postLoad(): DatasetSnapshot = {
-    copy(
-      rootPollingSource =
-        rootPollingSource.map(_.postLoad().asInstanceOf[RootPollingSource]),
-      derivativeSource =
-        derivativeSource.map(_.postLoad().asInstanceOf[DerivativeSource])
-    )
+    copy(source = source.postLoad().asInstanceOf[SourceKind])
   }
 }

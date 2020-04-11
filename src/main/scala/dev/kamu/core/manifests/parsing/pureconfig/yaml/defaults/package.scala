@@ -53,8 +53,14 @@ package object defaults {
   implicit val intervalWriter: ConfigWriter[Interval[Instant]] =
     ConfigWriter[String].contramap(_.format())
 
-  implicit val externalSourceKindHint: FieldCoproductHint[ExternalSourceKind] =
-    new FieldCoproductHint[ExternalSourceKind]("kind") {
+  implicit val sourceKindHint: FieldCoproductHint[SourceKind] =
+    new FieldCoproductHint[SourceKind]("kind") {
+      override protected def fieldValue(name: String): String =
+        Introspector.decapitalize(name)
+    }
+
+  implicit val fetchKindHint: FieldCoproductHint[FetchKind] =
+    new FieldCoproductHint[FetchKind]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }

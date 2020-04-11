@@ -11,6 +11,7 @@ package dev.kamu.core.manifests
 import java.net.URI
 import java.time.Instant
 
+import dev.kamu.core.manifests
 import org.scalatest._
 import dev.kamu.core.manifests.parsing.pureconfig.yaml
 import yaml.defaults._
@@ -25,7 +26,8 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  id: kamu.test
-      |  rootPollingSource:
+      |  source:
+      |    kind: root
       |    fetch:
       |      kind: fetchUrl
       |      url: ftp://kamu.dev/test.zip
@@ -59,31 +61,32 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           id = DatasetID("kamu.test"),
-          rootPollingSource = Some(
-            RootPollingSource(
-              fetch = ExternalSourceKind.FetchUrl(
-                url = URI.create("ftp://kamu.dev/test.zip"),
-                cache = Some(CachingKind.Forever())
-              ),
-              prepare = Vector(
-                PrepStepKind.Decompress(
-                  format = "zip",
-                  subPathRegex = Some("data_*.csv")
-                )
-              ),
-              read = ReaderKind.Generic(
-                name = "csv",
-                options = Map("header" -> "true")
-              ),
-              preprocess = ds.content.rootPollingSource.get.preprocess,
-              merge = MergeStrategyKind.Snapshot(primaryKey = Vector("id"))
-            )
+          source = SourceKind.Root(
+            fetch = FetchKind.FetchUrl(
+              url = URI.create("ftp://kamu.dev/test.zip"),
+              cache = Some(CachingKind.Forever())
+            ),
+            prepare = Vector(
+              PrepStepKind.Decompress(
+                format = "zip",
+                subPathRegex = Some("data_*.csv")
+              )
+            ),
+            read = ReaderKind.Generic(
+              name = "csv",
+              options = Map("header" -> "true")
+            ),
+            preprocess =
+              ds.content.source.asInstanceOf[SourceKind.Root].preprocess,
+            merge = MergeStrategyKind.Snapshot(primaryKey = Vector("id"))
           )
         )
       )
     )
 
-    ds.content.rootPollingSource.get.preprocessEngine should equal(
+    ds.content.source
+      .asInstanceOf[SourceKind.Root]
+      .preprocessEngine should equal(
       Some("sparkSQL")
     )
 
@@ -95,10 +98,11 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  id: com.naturalearthdata.countries.admin0
-      |  derivativeSource:
+      |  source:
+      |    kind: derivative
       |    inputs:
-      |      - id: com.naturalearthdata.countries.10m.admin0
-      |      - id: com.naturalearthdata.countries.50m.admin0
+      |    - id: com.naturalearthdata.countries.10m.admin0
+      |    - id: com.naturalearthdata.countries.50m.admin0
       |    transform:
       |      engine: sparkSQL
       |      queries:
@@ -116,24 +120,25 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           id = DatasetID("com.naturalearthdata.countries.admin0"),
-          derivativeSource = Some(
-            DerivativeSource(
-              inputs = Vector(
-                DerivativeInput(
-                  DatasetID("com.naturalearthdata.countries.10m.admin0")
-                ),
-                DerivativeInput(
-                  DatasetID("com.naturalearthdata.countries.50m.admin0")
-                )
+          source = SourceKind.Derivative(
+            inputs = Vector(
+              SourceKind.Derivative.Input(
+                DatasetID("com.naturalearthdata.countries.10m.admin0")
               ),
-              transform = ds.content.derivativeSource.get.transform
-            )
+              SourceKind.Derivative.Input(
+                DatasetID("com.naturalearthdata.countries.50m.admin0")
+              )
+            ),
+            transform =
+              ds.content.source.asInstanceOf[SourceKind.Derivative].transform
           )
         )
       )
     )
 
-    ds.content.derivativeSource.get.transformEngine should equal("sparkSQL")
+    ds.content.source
+      .asInstanceOf[SourceKind.Derivative]
+      .transformEngine should equal("sparkSQL")
   }
 
   val VALID_METADATA_BLOCK =
@@ -144,6 +149,14 @@ class UtilsSpec extends FlatSpec with Matchers {
       |  blockHash: ddeeaaddbbeeff
       |  prevBlockHash: ffeebbddaaeedd
       |  systemTime: '1970-01-01T00:00:00.000Z'
+      |  source:
+      |    kind: derivative
+      |    inputs:
+      |    - id: input1
+      |    - id: input2
+      |    transform:
+      |      engine: sparkSQL
+      |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
       |  outputSlice:
       |    hash: ffaabb
       |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
@@ -159,14 +172,16 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   it should "successfully load metadata block manifest" in {
     val block = yaml.load[Manifest[MetadataBlock]](VALID_METADATA_BLOCK)
-    assert(
-      block == Manifest(
+
+    block should equal(
+      Manifest(
         apiVersion = 1,
         kind = "MetadataBlock",
         content = MetadataBlock(
           blockHash = "ddeeaaddbbeeff",
           prevBlockHash = "ffeebbddaaeedd",
           systemTime = Instant.ofEpochMilli(0),
+          source = block.content.source,
           outputSlice = Some(
             DataSlice(
               hash = "ffaabb",
