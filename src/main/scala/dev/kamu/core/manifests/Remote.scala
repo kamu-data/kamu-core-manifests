@@ -10,13 +10,17 @@ package dev.kamu.core.manifests
 
 import java.net.URI
 
-case class VolumeID(s: String) extends AnyVal {
+case class RemoteID(s: String) extends AnyVal {
   override def toString: String = s
 }
 
-case class Volume(
-  /** ID of the volume */
-  id: VolumeID,
-  /** Location of the volume */
+case class Username(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class Remote(
+  /** ID of the remote */
+  id: RemoteID,
+  /** Location of the remote */
   url: URI
 ) extends Resource
