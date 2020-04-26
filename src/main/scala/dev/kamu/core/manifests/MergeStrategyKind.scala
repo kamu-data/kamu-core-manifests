@@ -14,16 +14,15 @@ object MergeStrategyKind {
 
   /** Append merge strategy.
     *
-    * Under this strategy polled data will be appended in its original form
-    * to the already ingested data without modifications. Optionally can add
-    * a system time column.
+    * Under this strategy the new data will be appended in its original form
+    * to the already ingested data without modifications.
     */
   case class Append(
     ) extends MergeStrategyKind
 
   /** Ledger merge strategy.
     *
-    * This strategy should be used for data dumps containing append-only event
+    * This strategy should be used for data sources containing append-only event
     * streams. New data dumps can have new rows added, but once data already
     * made it into one dump it never changes or disappears.
     *
