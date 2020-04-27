@@ -44,44 +44,44 @@ object ReaderKind {
 
   case class Csv(
     /** Sets a single character as a separator for each field and value */
-    sep: Option[String],
+    sep: Option[String] = None,
     /** Decodes the CSV files by the given encoding type */
-    encoding: Option[String],
+    encoding: Option[String] = None,
     /** Sets a single character used for escaping quoted values where the separator can be part of the value.
       * Set an empty string to turn off quotations. */
-    quote: Option[String],
+    quote: Option[String] = None,
     /** Sets a single character used for escaping quotes inside an already quoted value */
-    escape: Option[String],
+    escape: Option[String] = None,
     /** Sets a single character used for skipping lines beginning with this character */
-    comment: Option[String],
+    comment: Option[String] = None,
     /** Use the first line as names of columns */
-    header: Option[Boolean],
+    header: Option[Boolean] = None,
     /** If it is set to true, the specified or inferred schema will be forcibly applied to datasource files,
       * and headers in CSV files will be ignored. If the option is set to false, the schema will be validated against
       * all headers in CSV files in the case when the header option is set to true. */
-    enforceSchema: Option[Boolean],
+    enforceSchema: Option[Boolean] = None,
     /** Infers the input schema automatically from data. It requires one extra pass over the data. */
-    inferSchema: Option[Boolean],
+    inferSchema: Option[Boolean] = None,
     /** A flag indicating whether or not leading whitespaces from values being read should be skipped */
-    ignoreLeadingWhiteSpace: Option[Boolean],
+    ignoreLeadingWhiteSpace: Option[Boolean] = None,
     /** A flag indicating whether or not trailing whitespaces from values being read should be skipped */
-    ignoreTrailingWhiteSpace: Option[Boolean],
+    ignoreTrailingWhiteSpace: Option[Boolean] = None,
     /** Sets the string representation of a null value */
-    nullValue: Option[String],
+    nullValue: Option[String] = None,
     /** Sets the string representation of an empty value */
-    emptyValue: Option[String],
+    emptyValue: Option[String] = None,
     /** Sets the string representation of a non-number value */
-    nanValue: Option[String],
+    nanValue: Option[String] = None,
     /** Sets the string representation of a positive infinity value */
-    positiveInf: Option[String],
+    positiveInf: Option[String] = None,
     /** Sets the string representation of a negative infinity value */
-    negativeInf: Option[String],
+    negativeInf: Option[String] = None,
     /** Sets the string that indicates a date format */
-    dateFormat: Option[String],
+    dateFormat: Option[String] = None,
     /** Sets the string that indicates a timestamp format */
-    timestampFormat: Option[String],
+    timestampFormat: Option[String] = None,
     /** Parse one record, which may span multiple lines */
-    multiLine: Option[Boolean],
+    multiLine: Option[Boolean] = None,
     /** A DDL-formatted schema */
     schema: Vector[String] = Vector.empty
   ) extends ReaderKind {
