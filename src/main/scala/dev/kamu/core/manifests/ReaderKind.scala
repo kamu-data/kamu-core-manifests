@@ -44,7 +44,7 @@ object ReaderKind {
 
   case class Csv(
     /** Sets a single character as a separator for each field and value */
-    sep: Option[String] = None,
+    separator: Option[String] = None,
     /** Decodes the CSV files by the given encoding type */
     encoding: Option[String] = None,
     /** Sets a single character used for escaping quoted values where the separator can be part of the value.
@@ -89,7 +89,7 @@ object ReaderKind {
       Generic(
         name = "csv",
         options = Map(
-          "sep" -> sep,
+          "sep" -> separator,
           "encoding" -> encoding,
           "quote" -> quote,
           "escape" -> escape,
