@@ -142,7 +142,7 @@ class MetadataChainFS(fileSystem: FileSystem, datasetDir: Path) {
 
   protected implicit class MetadataBlockEx(b: MetadataBlock) {
     def hashed(): MetadataBlock = {
-      val digest = MessageDigest.getInstance("sha-1")
+      val digest = MessageDigest.getInstance("sha-256")
       val repr = yaml.saveStr(b)
 
       val blockHash = digest
