@@ -17,6 +17,7 @@ case class TransformTaskConfig(
   datasetID: DatasetID,
   source: SourceKind.Derivative,
   inputSlices: Map[String, DataSlice],
+  datasetVocabs: Map[String, DatasetVocabulary],
   datasetLayouts: Map[String, DatasetLayout],
   metadataOutputDir: Path
 ) extends Resource
