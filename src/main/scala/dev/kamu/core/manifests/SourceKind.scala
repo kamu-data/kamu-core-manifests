@@ -37,12 +37,7 @@ object SourceKind {
     /** Pre-processing query that shapes the data (see [[TransformKind]]) */
     preprocess: Option[ConfigObject] = None,
     /** Determines how newly-ingested data should be merged with existing history (see [[MergeStrategyKind]]) */
-    merge: MergeStrategyKind,
-    /** Collapse partitions of the result to specified number.
-      *
-      * If zero - the step will be skipped
-      */
-    coalesce: Int = 1
+    merge: MergeStrategyKind
   ) extends SourceKind {
 
     override def postLoad(): AnyRef = {

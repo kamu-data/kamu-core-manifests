@@ -10,17 +10,20 @@ package dev.kamu.core.manifests
 
 case class DatasetVocabulary(
   systemTimeColumn: String = "system_time",
+  eventTimeColumn: Option[String] = None,
   corruptRecordColumn: String = "__corrupt_record__"
 ) extends Resource {}
 
 case class DatasetVocabularyOverrides(
   systemTimeColumn: Option[String] = None,
+  eventTimeColumn: Option[String] = None,
   corruptRecordColumn: Option[String] = None
 ) {
   def asDatasetVocabulary(): DatasetVocabulary = {
     val vocab = DatasetVocabulary()
     vocab.copy(
       systemTimeColumn = systemTimeColumn.getOrElse(vocab.systemTimeColumn),
+      eventTimeColumn = eventTimeColumn,
       corruptRecordColumn =
         corruptRecordColumn.getOrElse(vocab.corruptRecordColumn)
     )
