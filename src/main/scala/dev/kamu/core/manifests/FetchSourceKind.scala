@@ -35,6 +35,7 @@ object FetchSourceKind {
   case class FilesGlob(
     /** Glob for data source files */
     path: Path,
+    orderBy: Option[OrderingKind] = None,
     eventTime: Option[EventTimeKind] = None,
     cache: Option[CachingKind] = None
   ) extends FetchSourceKind
@@ -46,9 +47,6 @@ object FetchSourceKind {
 sealed trait EventTimeKind
 
 object EventTimeKind {
-
-  case class FromSystemTime(
-    ) extends EventTimeKind
 
   case class FromPath(
     /** Regular expression where first group contains the timestamp string */
@@ -65,6 +63,21 @@ sealed trait CachingKind
 
 object CachingKind {
 
+  /** After source was processed once it will never be ingested again */
   case class Forever() extends CachingKind
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+sealed trait OrderingKind
+
+object OrderingKind {
+
+  /** Use event time extracted from metadata for ordering, see [[EventTimeKind]] */
+  case class ByMetadataEventTime() extends OrderingKind
+
+  /** Use alphabetical order */
+  case class ByName() extends OrderingKind
 
 }
