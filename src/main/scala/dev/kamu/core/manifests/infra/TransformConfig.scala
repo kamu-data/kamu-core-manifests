@@ -8,7 +8,7 @@
 
 package dev.kamu.core.manifests.infra
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 
 import dev.kamu.core.manifests._
 import org.apache.hadoop.fs.Path
@@ -19,13 +19,19 @@ case class TransformTaskConfig(
   inputSlices: Map[String, DataSlice],
   datasetVocabs: Map[String, DatasetVocabulary],
   datasetLayouts: Map[String, DatasetLayout],
-  metadataOutputDir: Path
+  resultPath: Path
 ) extends Resource
 
 case class TransformConfig(
   tasks: Vector[TransformTaskConfig]
 ) extends Resource
 
+case class TransformResult(
+  block: MetadataBlock,
+  dataFileName: Option[String]
+) extends Resource
+
+@deprecated
 object TransformConfig {
   import dev.kamu.core.manifests.parsing.pureconfig.yaml
   import yaml.defaults._
@@ -37,6 +43,20 @@ object TransformConfig {
     yaml
       .load[Manifest[TransformConfig]](getConfigFromResources(configFileName))
       .content
+  }
+
+  def load(inputStream: InputStream): TransformConfig = {
+    yaml.load[Manifest[TransformConfig]](inputStream).content
+  }
+
+  def load(config: String): TransformConfig = {
+    yaml
+      .load[Manifest[TransformConfig]](config)
+      .content
+  }
+
+  def save(config: TransformConfig, outputStream: OutputStream): Unit = {
+    yaml.save(Manifest(config), outputStream)
   }
 
   private def getConfigFromResources(configFileName: String): InputStream = {
