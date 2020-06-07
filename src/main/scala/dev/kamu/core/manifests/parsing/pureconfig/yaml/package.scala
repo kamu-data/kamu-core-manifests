@@ -46,6 +46,21 @@ package object yaml {
     raw.postLoad().asInstanceOf[T]
   }
 
+  def loadFromResources[T <: Resource: ClassTag](resourceName: String)(
+    implicit reader: Derivation[ConfigReader[T]]
+  ): T = {
+    val stream = getClass.getClassLoader.getResourceAsStream(resourceName)
+
+    if (stream == null)
+      throw new ClassNotFoundException(
+        s"Unable to locate $resourceName on classpath"
+      )
+
+    val res = load[T](stream)
+    stream.close()
+    res
+  }
+
   def save[T <: Resource: ClassTag](obj: T, outputStream: OutputStream)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): Unit = {
