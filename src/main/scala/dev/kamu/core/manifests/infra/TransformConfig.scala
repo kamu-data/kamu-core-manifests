@@ -19,7 +19,7 @@ case class TransformTaskConfig(
   inputSlices: Map[String, DataSlice],
   datasetVocabs: Map[String, DatasetVocabulary],
   datasetLayouts: Map[String, DatasetLayout],
-  resultPath: Path
+  resultDir: Path
 ) extends Resource
 
 case class TransformConfig(
