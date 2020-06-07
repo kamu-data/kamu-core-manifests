@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.{Config, ConfigObject}
 import dev.kamu.core.manifests.Resource
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import pureconfig.error.ConfigReaderException
 
@@ -46,6 +47,15 @@ package object yaml {
     raw.postLoad().asInstanceOf[T]
   }
 
+  def load[T <: Resource: ClassTag](fileSystem: FileSystem, path: Path)(
+    implicit reader: Derivation[ConfigReader[T]]
+  ): T = {
+    val inputStream = fileSystem.open(path)
+    val res = load[T](inputStream)
+    inputStream.close()
+    res
+  }
+
   def loadFromResources[T <: Resource: ClassTag](resourceName: String)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
@@ -75,6 +85,17 @@ package object yaml {
     yaml.dump(configValue.unwrapped(), writer)
 
     writer.flush()
+  }
+
+  def save[T <: Resource: ClassTag](obj: T, fileSystem: FileSystem, path: Path)(
+    implicit derivation: Derivation[ConfigWriter[T]]
+  ): Unit = {
+    val outputStream = fileSystem.create(path)
+    try {
+      save(obj, outputStream)
+    } finally {
+      outputStream.close()
+    }
   }
 
   def saveStr[T <: Resource: ClassTag](obj: T)(
