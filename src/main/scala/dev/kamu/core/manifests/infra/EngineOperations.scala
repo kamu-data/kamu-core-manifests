@@ -8,7 +8,23 @@
 
 package dev.kamu.core.manifests.infra
 
+import java.time.Instant
+
 import dev.kamu.core.manifests._
+import org.apache.hadoop.fs.Path
+
+case class IngestRequest(
+  datasetID: DatasetID,
+  source: SourceKind.Root,
+  datasetLayout: DatasetLayout,
+  datasetVocab: DatasetVocabulary,
+  dataToIngest: Path,
+  eventTime: Option[Instant]
+) extends Resource
+
+case class IngestResult(
+  block: MetadataBlock
+) extends Resource
 
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
