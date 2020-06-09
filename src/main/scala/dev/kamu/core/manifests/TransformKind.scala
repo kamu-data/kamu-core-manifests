@@ -73,7 +73,11 @@ object TransformKind {
       /** Name of the column to be used as event time */
       eventTimeColumn: String,
       /** Duration by which events can be late to still be considered */
-      maxLateBy: Option[Duration]
+      maxLateBy: Option[Duration],
+      /** When specified, the stream will be treated as a temporal table.
+        * See: https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/streaming/temporal_tables.html
+        */
+      primaryKey: Vector[String] = Vector.empty
     )
 
     case class Query(
