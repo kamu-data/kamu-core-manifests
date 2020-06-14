@@ -19,7 +19,7 @@ case class DatasetSummary(
   /** Set of immediate dependencies of this dataset */
   datasetDependencies: Set[DatasetID] = Set.empty,
   /** Dataset vocabulary */
-  vocabulary: Option[DatasetVocabularyOverrides] = None,
+  vocabulary: Option[DatasetVocabulary] = None,
   /** The last time when this dataset had new data */
   lastPulled: Option[Instant],
   /** Total number of records in the dataset */

@@ -49,7 +49,8 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      kind: snapshot
       |      primaryKey:
       |      - id
-      |      eventTimeColumn: event_time
+      |  vocabulary:
+      |    eventTimeColumn: date
     """.stripMargin
 
   "YAML utils" should "successfully load root dataset manifest" in {
@@ -79,10 +80,10 @@ class UtilsSpec extends FlatSpec with Matchers {
             preprocess =
               ds.content.source.asInstanceOf[SourceKind.Root].preprocess,
             merge = MergeStrategyKind.Snapshot(
-              primaryKey = Vector("id"),
-              eventTimeColumn = Some("event_time")
+              primaryKey = Vector("id")
             )
-          )
+          ),
+          vocabulary = Some(DatasetVocabulary(eventTimeColumn = Some("date")))
         )
       )
     )

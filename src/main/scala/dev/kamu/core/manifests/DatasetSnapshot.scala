@@ -15,7 +15,7 @@ case class DatasetSnapshot(
   /** Contains information about the source of data (see [[SourceKind]]) */
   source: SourceKind,
   /** Dataset vocabulary */
-  vocabulary: Option[DatasetVocabularyOverrides] = None
+  vocabulary: Option[DatasetVocabulary] = None
 ) extends Resource {
 
   def kind: DatasetKind = {

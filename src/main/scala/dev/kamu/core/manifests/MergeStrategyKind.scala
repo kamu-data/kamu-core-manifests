@@ -86,14 +86,6 @@ object MergeStrategyKind {
       * compared one by one.
       */
     compareColumns: Vector[String] = Vector.empty,
-    /** Name of the event time column that will be added to the data.
-      *
-      * Its value usually comes from the metadata extracted from the data source
-      * (see [[FetchSourceKind]]).
-      *
-      * Defaults to: "event_time"
-      */
-    eventTimeColumn: Option[String] = None,
     /** Name of the observation type column that will be added to the data.
       *
       * Defaults to: "observed"
@@ -121,7 +113,6 @@ object MergeStrategyKind {
 
     def withDefaults(): Snapshot = {
       copy(
-        eventTimeColumn = Some(eventTimeColumn.getOrElse("event_time")),
         observationColumn = Some(observationColumn.getOrElse("observed")),
         obsvAdded = Some(obsvAdded.getOrElse("I")),
         obsvChanged = Some(obsvChanged.getOrElse("U")),
