@@ -48,8 +48,10 @@ object TransformKind {
 
   case class Flink(
     engine: String,
-    /** Event time configuration for input datasets */
-    watermarks: Vector[Flink.Watermark] = Vector.empty,
+    /** Specifies which input streams should be treated as temporal tables.
+      * See: https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/streaming/temporal_tables.html
+      */
+    temporalTables: Vector[Flink.TemporalTable] = Vector.empty,
     /** Processing steps that shape the data */
     queries: Vector[Flink.Query] = Vector.empty,
     /** Convenience way to provide a single SQL statement with no alias **/
@@ -66,16 +68,10 @@ object TransformKind {
   }
 
   object Flink {
-    // TODO: Consider making a part of input configuration
-    case class Watermark(
+    case class TemporalTable(
       /** ID of the input dataset */
       id: DatasetID,
-      /** Name of the column to be used as event time */
-      eventTimeColumn: String,
-      /** Duration by which events can be late to still be considered */
-      maxLateBy: Option[Duration],
-      /** When specified, the stream will be treated as a temporal table.
-        * See: https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/streaming/temporal_tables.html
+      /** When specified primary key of the temporal table
         */
       primaryKey: Vector[String] = Vector.empty
     )
