@@ -49,5 +49,6 @@ case class ExecuteQueryResult(
 ) extends Resource
 
 case class InputProperties(
-  lastWatermark: Instant
+  /** Advances the watermark to the specified value at the end of processing */
+  explicitWatermark: Option[Instant]
 )
