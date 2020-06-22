@@ -12,6 +12,7 @@ import java.time.Instant
 
 import dev.kamu.core.manifests._
 import org.apache.hadoop.fs.Path
+import spire.math.Interval
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ingest
@@ -37,8 +38,7 @@ case class IngestResult(
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
   source: SourceKind.Derivative,
-  inputSlices: Map[String, DataSlice],
-  inputProperties: Map[String, InputProperties],
+  inputSlices: Map[String, InputDataSlice],
   datasetVocabs: Map[String, DatasetVocabulary],
   datasetLayouts: Map[String, DatasetLayout]
 ) extends Resource
@@ -48,7 +48,12 @@ case class ExecuteQueryResult(
   dataFileName: Option[String]
 ) extends Resource
 
-case class InputProperties(
-  /** Advances the watermark to the specified value at the end of processing */
-  explicitWatermark: Option[Instant] = None
+case class InputDataSlice(
+  interval: Interval[Instant],
+  explicitWatermarks: Vector[Watermark] = Vector.empty
+)
+
+case class Watermark(
+  systemTime: Instant,
+  eventTime: Instant
 )
