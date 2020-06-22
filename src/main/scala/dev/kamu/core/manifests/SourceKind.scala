@@ -38,6 +38,9 @@ object SourceKind {
     preprocess: Option[ConfigObject] = None,
     /** Determines how newly-ingested data should be merged with existing history (see [[MergeStrategyKind]]) */
     merge: MergeStrategyKind
+    /** TODO: Time duration by which events can arrive out of order.
+      * This will be translated into the watermark delay. */
+    //maxOutOfOrderBy: Option[Duration]
   ) extends SourceKind {
 
     override def postLoad(): AnyRef = {
@@ -61,7 +64,6 @@ object SourceKind {
     inputs: Vector[Derivative.Input],
     /** Engine-specific processing queries that shape the resulting data (see [[TransformKind]]) */
     transform: ConfigObject
-    /** TODO: Output mode (e,g, Spark's Append vs Update)?  */
   ) extends SourceKind {
 
     override def postLoad(): AnyRef = {

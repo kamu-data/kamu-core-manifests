@@ -165,6 +165,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    hash: ffaabb
       |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
       |    numRecords: 10
+      |  outputWatermark: '1970-01-01T00:01:00.000Z'
       |  inputSlices:
       |  - hash: aa
       |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
@@ -189,10 +190,11 @@ class UtilsSpec extends FlatSpec with Matchers {
           outputSlice = Some(
             DataSlice(
               hash = "ffaabb",
-              interval = Interval.point(Instant.ofEpochMilli(0)),
+              interval = Interval.point(Instant.ofEpochSecond(0)),
               numRecords = 10
             )
           ),
+          outputWatermark = Some(Instant.ofEpochSecond(60)),
           inputSlices = Vector(
             DataSlice(
               hash = "aa",

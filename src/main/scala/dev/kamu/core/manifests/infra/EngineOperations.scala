@@ -13,6 +13,10 @@ import java.time.Instant
 import dev.kamu.core.manifests._
 import org.apache.hadoop.fs.Path
 
+///////////////////////////////////////////////////////////////////////////////
+// Ingest
+///////////////////////////////////////////////////////////////////////////////
+
 case class IngestRequest(
   datasetID: DatasetID,
   source: SourceKind.Root,
@@ -26,10 +30,15 @@ case class IngestResult(
   block: MetadataBlock
 ) extends Resource
 
+///////////////////////////////////////////////////////////////////////////////
+// Execute Query
+///////////////////////////////////////////////////////////////////////////////
+
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
   source: SourceKind.Derivative,
   inputSlices: Map[String, DataSlice],
+  inputProperties: Map[String, InputProperties],
   datasetVocabs: Map[String, DatasetVocabulary],
   datasetLayouts: Map[String, DatasetLayout]
 ) extends Resource
@@ -38,3 +47,7 @@ case class ExecuteQueryResult(
   block: MetadataBlock,
   dataFileName: Option[String]
 ) extends Resource
+
+case class InputProperties(
+  lastWatermark: Instant
+)

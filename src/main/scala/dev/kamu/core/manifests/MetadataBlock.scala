@@ -21,6 +21,11 @@ case class MetadataBlock(
   systemTime: Instant,
   /** Properties of output data written during this update, if any */
   outputSlice: Option[DataSlice] = None,
+  /** Watermark specifies the event time before which most of the data has already been seen.
+    * Usually it's set during normal processing, but can also be set manually - this is especially useful
+    * for slow-moving datasets to let computations to continue when no events were observed for a long time.
+    */
+  outputWatermark: Option[Instant] = None,
   //** Describes the output data schema (can be omitted if it doesn't differ from the previous block) */
   // outputDataSchema: Option[Schema])
   /** Defines input data slices used in this block, if any (order corresponds to transform inputs) */
