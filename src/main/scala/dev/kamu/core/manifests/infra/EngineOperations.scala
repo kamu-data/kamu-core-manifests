@@ -50,5 +50,5 @@ case class ExecuteQueryResult(
 
 case class InputProperties(
   /** Advances the watermark to the specified value at the end of processing */
-  explicitWatermark: Option[Instant]
+  explicitWatermark: Option[Instant] = None
 )
