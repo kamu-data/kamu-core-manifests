@@ -22,11 +22,11 @@ case class MetadataBlock(
   /** Properties of output data written during this update, if any */
   outputSlice: Option[DataSlice] = None,
   /** Watermarks specify the event time before which most of the data has already been seen.
-    * While watermarks are usually derived implicitly from event time based on properties of the source,
-    * this explicit watermark is assigned manually. It is normally done for slow-moving datasets to let
-    * the computations continue even when no events were observed for a long time.
+    * They are usually derived implicitly based on the event times of data and the properties of the source,
+    * They can also be assigned manually in cases such as slow-moving datasets in order to let
+    * the computations continue even when no new events were observed for a long time.
     */
-  outputExplicitWatermark: Option[Instant] = None,
+  outputLastWatermark: Option[Instant] = None,
   //** Describes the output data schema (can be omitted if it doesn't differ from the previous block) */
   // outputDataSchema: Option[Schema])
   /** Defines input data slices used in this block, if any (order corresponds to transform inputs) */
