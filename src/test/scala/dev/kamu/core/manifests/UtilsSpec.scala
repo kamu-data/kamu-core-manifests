@@ -165,7 +165,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    hash: ffaabb
       |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
       |    numRecords: 10
-      |  outputLastWatermark: '1970-01-01T00:01:00.000Z'
+      |  outputWatermark: '1970-01-01T00:01:00.000Z'
       |  inputSlices:
       |  - hash: aa
       |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
