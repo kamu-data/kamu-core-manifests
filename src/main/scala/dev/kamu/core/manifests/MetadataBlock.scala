@@ -21,14 +21,14 @@ case class MetadataBlock(
   systemTime: Instant,
   /** Properties of output data written during this update, if any */
   outputSlice: Option[DataSlice] = None,
-  /** Watermarks specify the event time before which most of the data has already been seen.
-    * They are usually derived implicitly based on the event times of data and the properties of the source,
-    * They can also be assigned manually in cases such as slow-moving datasets in order to let
-    * the computations continue even when no new events were observed for a long time.
+  /** Last watermark of the output data stream.
+    * Watermarks are usually derived from the event times in data based on the properties of the source,
+    * but sometimes they can also be assigned manually. Manual watermarks are useful in cases of slow-moving
+    * datasets in order to let the computations continue even when no new events were observed for a long time.
     */
-  outputLastWatermark: Option[Instant] = None,
+  outputWatermark: Option[Instant] = None,
   //** Describes the output data schema (can be omitted if it doesn't differ from the previous block) */
-  // outputDataSchema: Option[Schema])
+  // outputDataSchema: Option[Schema],
   /** Defines input data slices used in this block, if any (order corresponds to transform inputs) */
   inputSlices: Vector[DataSlice] = Vector.empty,
   /** Contains the definition of the source of data when it changes */
