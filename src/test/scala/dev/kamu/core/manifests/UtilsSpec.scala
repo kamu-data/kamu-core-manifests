@@ -194,7 +194,7 @@ class UtilsSpec extends FlatSpec with Matchers {
               numRecords = 10
             )
           ),
-          outputLastWatermark = Some(Instant.ofEpochSecond(60)),
+          outputWatermark = Some(Instant.ofEpochSecond(60)),
           inputSlices = Vector(
             DataSlice(
               hash = "aa",
