@@ -8,7 +8,8 @@
 
 package dev.kamu.core.manifests
 
-import org.apache.hadoop.fs.{FileSystem, Path}
+import java.nio.file.Path
+
 import dev.kamu.core.utils.fs._
 
 case class VolumeLayout(
@@ -28,19 +29,19 @@ case class VolumeLayout(
 
   def relativeTo(path: Path): VolumeLayout = {
     copy(
-      metadataDir = path.resolve(metadataDir),
-      checkpointsDir = path.resolve(checkpointsDir),
-      dataDir = path.resolve(dataDir),
-      cacheDir = path.resolve(cacheDir)
+      metadataDir = path / metadataDir,
+      checkpointsDir = path / checkpointsDir,
+      dataDir = path / dataDir,
+      cacheDir = path / cacheDir
     )
   }
 
-  def toAbsolute(fs: FileSystem): VolumeLayout = {
+  def toAbsolute: VolumeLayout = {
     copy(
-      metadataDir = fs.toAbsolute(metadataDir),
-      checkpointsDir = fs.toAbsolute(checkpointsDir),
-      dataDir = fs.toAbsolute(dataDir),
-      cacheDir = fs.toAbsolute(cacheDir)
+      metadataDir = metadataDir.toAbsolutePath,
+      checkpointsDir = checkpointsDir.toAbsolutePath,
+      dataDir = dataDir.toAbsolutePath,
+      cacheDir = cacheDir.toAbsolutePath
     )
   }
 }

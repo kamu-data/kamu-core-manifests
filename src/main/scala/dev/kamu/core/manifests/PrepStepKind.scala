@@ -8,7 +8,7 @@
 
 package dev.kamu.core.manifests
 
-import org.apache.hadoop.fs.Path
+import java.nio.file.Path
 
 sealed trait PrepStepKind
 

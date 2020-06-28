@@ -8,7 +8,7 @@
 
 package dev.kamu.core.manifests
 
-import org.apache.hadoop.fs.Path
+import java.nio.file.Path
 
 /** References a dataset stored in remote volume */
 case class DatasetLayout(

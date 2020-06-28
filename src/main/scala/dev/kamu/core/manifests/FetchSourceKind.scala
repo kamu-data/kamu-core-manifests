@@ -9,8 +9,7 @@
 package dev.kamu.core.manifests
 
 import java.net.URI
-
-import org.apache.hadoop.fs.Path
+import java.nio.file.Path
 
 //////////////////////////////////////////////////////////////////////////////
 

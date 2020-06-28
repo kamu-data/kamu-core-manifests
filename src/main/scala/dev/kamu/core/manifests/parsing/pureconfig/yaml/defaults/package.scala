@@ -12,7 +12,6 @@ import java.beans.Introspector
 import java.net.URI
 import java.time.Instant
 
-import org.apache.hadoop.fs.Path
 import pureconfig._
 import pureconfig.generic._
 import spire.math.Interval
@@ -33,12 +32,6 @@ package object defaults {
 
   implicit val uriWriter: ConfigWriter[URI] = ConfigWriter[String]
     .contramap((uri: URI) => uri.toString)
-
-  implicit val pathReader: ConfigReader[Path] = ConfigReader[String]
-    .map(s => new Path(URI.create(s)))
-
-  implicit val pathWriter: ConfigWriter[Path] = ConfigWriter[String]
-    .contramap((p: Path) => p.toString)
 
   implicit val instantReader: ConfigReader[Instant] = ConfigReader[String]
     .map(Instant.parse)

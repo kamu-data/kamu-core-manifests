@@ -8,10 +8,10 @@
 
 package dev.kamu.core.manifests.infra
 
+import java.nio.file.Path
 import java.time.Instant
 
 import dev.kamu.core.manifests._
-import org.apache.hadoop.fs.Path
 import spire.math.Interval
 
 ///////////////////////////////////////////////////////////////////////////////

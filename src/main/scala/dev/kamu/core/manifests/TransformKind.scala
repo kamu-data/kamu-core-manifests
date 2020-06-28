@@ -8,8 +8,6 @@
 
 package dev.kamu.core.manifests
 
-import scala.concurrent.duration.Duration
-
 sealed trait TransformKind extends Resource {
 
   /** Identifier of the engine that should execute this transform query */

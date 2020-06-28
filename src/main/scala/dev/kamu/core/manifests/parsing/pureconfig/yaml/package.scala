@@ -10,10 +10,11 @@ package dev.kamu.core.manifests.parsing.pureconfig
 
 import java.io.{ByteArrayOutputStream, InputStream, OutputStream, PrintWriter}
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 
+import better.files.File
 import com.typesafe.config.{Config, ConfigObject}
 import dev.kamu.core.manifests.Resource
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import pureconfig.error.ConfigReaderException
 
@@ -47,10 +48,10 @@ package object yaml {
     raw.postLoad().asInstanceOf[T]
   }
 
-  def load[T <: Resource: ClassTag](fileSystem: FileSystem, path: Path)(
+  def load[T <: Resource: ClassTag](path: Path)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
-    val inputStream = fileSystem.open(path)
+    val inputStream = File(path).newInputStream
     val res = load[T](inputStream)
     inputStream.close()
     res
@@ -87,12 +88,16 @@ package object yaml {
     writer.flush()
   }
 
-  def save[T <: Resource: ClassTag](obj: T, fileSystem: FileSystem, path: Path)(
+  def save[T <: Resource: ClassTag](obj: T, path: Path)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): Unit = {
-    val outputStream = fileSystem.create(path)
+    val outputStream = File(path).newOutputStream()
     try {
       save(obj, outputStream)
+    } catch {
+      case e: Exception =>
+        File(path).delete(true)
+        throw e
     } finally {
       outputStream.close()
     }
