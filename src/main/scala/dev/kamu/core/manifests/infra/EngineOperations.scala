@@ -23,6 +23,7 @@ case class IngestRequest(
   eventTime: Option[Instant],
   source: SourceKind.Root,
   datasetVocab: DatasetVocabulary,
+  checkpointsDir: String,
   dataDir: String
 ) extends Resource
 
@@ -40,7 +41,7 @@ case class ExecuteQueryRequest(
   datasetVocabs: Map[String, DatasetVocabulary],
   inputSlices: Map[String, InputDataSlice],
   dataDirs: Map[String, String],
-  checkpointDir: String
+  checkpointsDir: String
 ) extends Resource
 
 case class ExecuteQueryResult(
