@@ -8,7 +8,6 @@
 
 package dev.kamu.core.manifests.infra
 
-import java.nio.file.Path
 import java.time.Instant
 
 import dev.kamu.core.manifests._
@@ -20,11 +19,11 @@ import spire.math.Interval
 
 case class IngestRequest(
   datasetID: DatasetID,
+  ingestPath: String,
+  eventTime: Option[Instant],
   source: SourceKind.Root,
-  datasetLayout: DatasetLayout,
   datasetVocab: DatasetVocabulary,
-  dataToIngest: Path,
-  eventTime: Option[Instant]
+  dataDir: String
 ) extends Resource
 
 case class IngestResult(
@@ -38,9 +37,10 @@ case class IngestResult(
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
   source: SourceKind.Derivative,
-  inputSlices: Map[String, InputDataSlice],
   datasetVocabs: Map[String, DatasetVocabulary],
-  datasetLayouts: Map[String, DatasetLayout]
+  inputSlices: Map[String, InputDataSlice],
+  dataDirs: Map[String, String],
+  checkpointDir: String
 ) extends Resource
 
 case class ExecuteQueryResult(
