@@ -18,7 +18,7 @@ case class DatasetRef(
   datasetID: DatasetID,
   /** Local alias of the dataset within a workspace */
   alias: Option[DatasetID] = None
-) extends Resource
+)
 
 object DatasetRef {
   private val remoteFormat = """([a-zA-Z0-9.]+)/([a-zA-Z0-9\.]+)""".r

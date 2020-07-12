@@ -14,41 +14,38 @@ import java.nio.file.Path
 
 import better.files.File
 import com.typesafe.config.{Config, ConfigObject}
-import dev.kamu.core.manifests.Resource
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import pureconfig.error.ConfigReaderException
+import pureconfig.module.yaml.YamlConfigSource
 
 import scala.reflect.ClassTag
 
 package object yaml {
   import pureconfig._
-  import pureconfig.module.yaml.loadYamlOrThrow
 
-  def load[T <: Resource: ClassTag](inputStream: InputStream)(
+  def load[T: ClassTag](inputStream: InputStream)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
     val str = scala.io.Source.fromInputStream(inputStream).mkString
     load[T](str)
   }
 
-  def load[T <: Resource: ClassTag](str: String)(
+  def load[T: ClassTag](str: String)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
-    val raw = loadYamlOrThrow[T](str)
-    raw.postLoad().asInstanceOf[T]
+    YamlConfigSource.string(str).loadOrThrow[T]
   }
 
-  def load[T <: Resource: ClassTag](conf: Config)(
+  def load[T: ClassTag](conf: Config)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
-    val raw = pureconfig.loadConfig[T](conf) match {
+    ConfigSource.fromConfig(conf).load[T] match {
       case Right(config)  => config
       case Left(failures) => throw new ConfigReaderException[Config](failures)
     }
-    raw.postLoad().asInstanceOf[T]
   }
 
-  def load[T <: Resource: ClassTag](path: Path)(
+  def load[T: ClassTag](path: Path)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
     val inputStream = File(path).newInputStream
@@ -57,7 +54,7 @@ package object yaml {
     res
   }
 
-  def loadFromResources[T <: Resource: ClassTag](resourceName: String)(
+  def loadFromResources[T: ClassTag](resourceName: String)(
     implicit reader: Derivation[ConfigReader[T]]
   ): T = {
     val stream = getClass.getClassLoader.getResourceAsStream(resourceName)
@@ -72,12 +69,10 @@ package object yaml {
     res
   }
 
-  def save[T <: Resource: ClassTag](obj: T, outputStream: OutputStream)(
+  def save[T: ClassTag](obj: T, outputStream: OutputStream)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): Unit = {
-    val raw = obj.preSave().asInstanceOf[T]
-
-    val configValue = ConfigWriter[T].to(raw)
+    val configValue = ConfigWriter[T].to(obj)
     val writer = new PrintWriter(outputStream)
 
     val options = new DumperOptions()
@@ -88,7 +83,7 @@ package object yaml {
     writer.flush()
   }
 
-  def save[T <: Resource: ClassTag](obj: T, path: Path)(
+  def save[T: ClassTag](obj: T, path: Path)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): Unit = {
     val outputStream = File(path).newOutputStream()
@@ -96,14 +91,14 @@ package object yaml {
       save(obj, outputStream)
     } catch {
       case e: Exception =>
-        File(path).delete(true)
+        File(path).delete(swallowIOExceptions = true)
         throw e
     } finally {
       outputStream.close()
     }
   }
 
-  def saveStr[T <: Resource: ClassTag](obj: T)(
+  def saveStr[T: ClassTag](obj: T)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): String = {
     val stream = new ByteArrayOutputStream()
@@ -111,11 +106,10 @@ package object yaml {
     new String(stream.toByteArray, StandardCharsets.UTF_8)
   }
 
-  def saveObj[T <: Resource: ClassTag](obj: T)(
+  def saveObj[T: ClassTag](obj: T)(
     implicit derivation: Derivation[ConfigWriter[T]]
   ): ConfigObject = {
-    val raw = obj.preSave().asInstanceOf[T]
-    val configValue = ConfigWriter[T].to(raw)
+    val configValue = ConfigWriter[T].to(obj)
     configValue.asInstanceOf[ConfigObject]
   }
 }

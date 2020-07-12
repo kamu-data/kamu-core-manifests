@@ -53,46 +53,61 @@ package object defaults {
   implicit val datasetKindWriter: ConfigWriter[DatasetKind] =
     semiauto.deriveEnumerationWriter[DatasetKind]
 
-  implicit val sourceKindHint: FieldCoproductHint[SourceKind] =
-    new FieldCoproductHint[SourceKind]("kind") {
+  // TODO: semiauto.deriveEnumerationReader doesn't work for some reason
+  implicit val sourceOrderingReader: ConfigReader[SourceOrdering] =
+    ConfigReader[String] map {
+      case "byName"      => SourceOrdering.ByName()
+      case "byEventTime" => SourceOrdering.ByEventTime()
+    }
+
+  implicit val sourceOrderingWriter: ConfigWriter[SourceOrdering] =
+    ConfigWriter[String] contramap {
+      case SourceOrdering.ByName()      => "byName"
+      case SourceOrdering.ByEventTime() => "byEventTime"
+    }
+
+  implicit val datasetSourceHint: FieldCoproductHint[DatasetSource] =
+    new FieldCoproductHint[DatasetSource]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val fetchKindHint: FieldCoproductHint[FetchSourceKind] =
-    new FieldCoproductHint[FetchSourceKind]("kind") {
+  implicit val fetchStepHint: FieldCoproductHint[FetchStep] =
+    new FieldCoproductHint[FetchStep]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val eventTimeKindHint: FieldCoproductHint[EventTimeKind] =
-    new FieldCoproductHint[EventTimeKind]("kind") {
+  implicit val eventTimeSourceHint: FieldCoproductHint[EventTimeSource] =
+    new FieldCoproductHint[EventTimeSource]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val cachingKindHint: FieldCoproductHint[CachingKind] =
-    new FieldCoproductHint[CachingKind]("kind") {
+  implicit val sourceCachingHint: FieldCoproductHint[SourceCaching] =
+    new FieldCoproductHint[SourceCaching]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val prepStepKindHint: FieldCoproductHint[PrepStepKind] =
-    new FieldCoproductHint[PrepStepKind]("kind") {
+  implicit val prepStepHint: FieldCoproductHint[PrepStep] =
+    new FieldCoproductHint[PrepStep]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val readerKindHint: FieldCoproductHint[ReaderKind] =
-    new FieldCoproductHint[ReaderKind]("kind") {
+  implicit val readStepHint: FieldCoproductHint[ReadStep] =
+    new FieldCoproductHint[ReadStep]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
-  implicit val mergeStrategyHint: FieldCoproductHint[MergeStrategyKind] =
-    new FieldCoproductHint[MergeStrategyKind]("kind") {
+  implicit val mergeStrategyHint: FieldCoproductHint[MergeStrategy] =
+    new FieldCoproductHint[MergeStrategy]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
 
+  implicit val transformHint: ProductHint[Transform] =
+    ProductHint[Transform](allowUnknownKeys = true)
 }

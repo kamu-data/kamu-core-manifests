@@ -35,12 +35,10 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    prepare:
       |    - kind: decompress
       |      format: zip
-      |      subPathRegex: data_*.csv
+      |      subPath: data_*.csv
       |    read:
-      |      kind: generic
-      |      name: csv
-      |      options:
-      |        header: 'true'
+      |      kind: csv
+      |      header: true
       |    preprocess:
       |      engine: sparkSQL
       |      queries:
@@ -49,7 +47,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      kind: snapshot
       |      primaryKey:
       |      - id
-      |  vocabulary:
+      |  vocab:
       |    eventTimeColumn: date
     """.stripMargin
 
@@ -62,38 +60,61 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           id = DatasetID("kamu.test"),
-          source = SourceKind.Root(
-            fetch = FetchSourceKind.Url(
+          source = DatasetSource.Root(
+            fetch = FetchStep.Url(
               url = URI.create("ftp://kamu.dev/test.zip"),
-              cache = Some(CachingKind.Forever())
+              cache = Some(SourceCaching.Forever())
             ),
-            prepare = Vector(
-              PrepStepKind.Decompress(
-                format = "zip",
-                subPathRegex = Some("data_*.csv")
+            prepare = Some(
+              Vector(
+                PrepStep.Decompress(
+                  format = "zip",
+                  subPath = Some("data_*.csv")
+                )
               )
             ),
-            read = ReaderKind.Generic(
-              name = "csv",
-              options = Map("header" -> "true")
+            read = ReadStep.Csv(
+              header = Some(true)
             ),
             preprocess =
-              ds.content.source.asInstanceOf[SourceKind.Root].preprocess,
-            merge = MergeStrategyKind.Snapshot(
+              ds.content.source.asInstanceOf[DatasetSource.Root].preprocess,
+            merge = MergeStrategy.Snapshot(
               primaryKey = Vector("id")
             )
           ),
-          vocabulary = Some(DatasetVocabulary(eventTimeColumn = Some("date")))
+          vocab = Some(DatasetVocabulary(eventTimeColumn = Some("date")))
         )
       )
     )
 
     ds.content.source
-      .asInstanceOf[SourceKind.Root]
-      .preprocessEngine should equal(
-      Some("sparkSQL")
+      .asInstanceOf[DatasetSource.Root]
+      .preprocessPartial
+      .get
+      .engine should equal(
+      "sparkSQL"
     )
+  }
 
+  val VALID_PATH_GLOB_FETCH =
+    """
+      |kind: filesGlob
+      |path: /opt/x/*.txt
+      |cache:
+      |  kind: forever
+      |order: byName
+    """.stripMargin
+
+  "YAML utils" should "successfully load glob fetch" in {
+    val ds = yaml.load[FetchStep](VALID_PATH_GLOB_FETCH)
+
+    ds should equal(
+      FetchStep.FilesGlob(
+        path = "/opt/x/*.txt",
+        cache = Some(SourceCaching.Forever()),
+        order = Some(SourceOrdering.ByName())
+      )
+    )
   }
 
   val VALID_DERIVATIVE_STREAMING_DATASET =
@@ -105,8 +126,8 @@ class UtilsSpec extends FlatSpec with Matchers {
       |  source:
       |    kind: derivative
       |    inputs:
-      |    - id: com.naturalearthdata.countries.10m.admin0
-      |    - id: com.naturalearthdata.countries.50m.admin0
+      |    - com.naturalearthdata.countries.10m.admin0
+      |    - com.naturalearthdata.countries.50m.admin0
       |    transform:
       |      engine: sparkSQL
       |      queries:
@@ -124,25 +145,22 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           id = DatasetID("com.naturalearthdata.countries.admin0"),
-          source = SourceKind.Derivative(
+          source = DatasetSource.Derivative(
             inputs = Vector(
-              SourceKind.Derivative.Input(
-                DatasetID("com.naturalearthdata.countries.10m.admin0")
-              ),
-              SourceKind.Derivative.Input(
-                DatasetID("com.naturalearthdata.countries.50m.admin0")
-              )
+              DatasetID("com.naturalearthdata.countries.10m.admin0"),
+              DatasetID("com.naturalearthdata.countries.50m.admin0")
             ),
             transform =
-              ds.content.source.asInstanceOf[SourceKind.Derivative].transform
+              ds.content.source.asInstanceOf[DatasetSource.Derivative].transform
           )
         )
       )
     )
 
     ds.content.source
-      .asInstanceOf[SourceKind.Derivative]
-      .transformEngine should equal("sparkSQL")
+      .asInstanceOf[DatasetSource.Derivative]
+      .transformPartial
+      .engine should equal("sparkSQL")
   }
 
   val VALID_METADATA_BLOCK =
@@ -156,8 +174,8 @@ class UtilsSpec extends FlatSpec with Matchers {
       |  source:
       |    kind: derivative
       |    inputs:
-      |    - id: input1
-      |    - id: input2
+      |    - input1
+      |    - input2
       |    transform:
       |      engine: sparkSQL
       |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
@@ -195,20 +213,22 @@ class UtilsSpec extends FlatSpec with Matchers {
             )
           ),
           outputWatermark = Some(Instant.ofEpochSecond(60)),
-          inputSlices = Vector(
-            DataSlice(
-              hash = "aa",
-              interval = Interval
-                .openLower(
-                  Instant.ofEpochSecond(60),
-                  Instant.ofEpochSecond(120)
-                ),
-              numRecords = 10
-            ),
-            DataSlice(
-              hash = "zz",
-              interval = Interval.empty,
-              numRecords = 0
+          inputSlices = Some(
+            Vector(
+              DataSlice(
+                hash = "aa",
+                interval = Interval
+                  .openLower(
+                    Instant.ofEpochSecond(60),
+                    Instant.ofEpochSecond(120)
+                  ),
+                numRecords = 10
+              ),
+              DataSlice(
+                hash = "zz",
+                interval = Interval.empty,
+                numRecords = 0
+              )
             )
           )
         )

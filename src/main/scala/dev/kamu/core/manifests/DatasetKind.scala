@@ -8,10 +8,9 @@
 
 package dev.kamu.core.manifests
 
-trait Resource {
-  val resourceName = getClass.getSimpleName
-
-  def postLoad(): AnyRef = { this }
-
-  def preSave(): AnyRef = { this }
+sealed trait DatasetKind
+object DatasetKind {
+  case object Root extends DatasetKind
+  case object Derivative extends DatasetKind
+  case object Remote extends DatasetKind
 }

@@ -21,15 +21,15 @@ case class IngestRequest(
   datasetID: DatasetID,
   ingestPath: String,
   eventTime: Option[Instant],
-  source: SourceKind.Root,
+  source: DatasetSource.Root,
   datasetVocab: DatasetVocabulary,
   checkpointsDir: String,
   dataDir: String
-) extends Resource
+)
 
 case class IngestResult(
   block: MetadataBlock
-) extends Resource
+)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Execute Query
@@ -37,17 +37,17 @@ case class IngestResult(
 
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
-  source: SourceKind.Derivative,
+  source: DatasetSource.Derivative,
   datasetVocabs: Map[String, DatasetVocabulary],
   inputSlices: Map[String, InputDataSlice],
   dataDirs: Map[String, String],
   checkpointsDir: String
-) extends Resource
+)
 
 case class ExecuteQueryResult(
   block: MetadataBlock,
   dataFileName: Option[String]
-) extends Resource
+)
 
 case class InputDataSlice(
   interval: Interval[Instant],

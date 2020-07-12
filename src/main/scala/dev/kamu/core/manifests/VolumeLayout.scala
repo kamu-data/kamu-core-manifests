@@ -21,7 +21,7 @@ case class VolumeLayout(
   dataDir: Path,
   /** Stores data that is not essential but can improve performance of operations like data polling */
   cacheDir: Path
-) extends Resource {
+) {
 
   def allDirs: Seq[Path] = {
     Seq(metadataDir, checkpointsDir, dataDir, cacheDir)

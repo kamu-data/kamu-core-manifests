@@ -19,11 +19,11 @@ case class DatasetSummary(
   /** Set of immediate dependencies of this dataset */
   datasetDependencies: Set[DatasetID] = Set.empty,
   /** Dataset vocabulary */
-  vocabulary: Option[DatasetVocabulary] = None,
+  vocab: Option[DatasetVocabulary] = None,
   /** The last time when this dataset had new data */
   lastPulled: Option[Instant],
   /** Total number of records in the dataset */
   numRecords: Long,
   /** Total size of data on disk */
   dataSize: Long
-) extends Resource {}
+)

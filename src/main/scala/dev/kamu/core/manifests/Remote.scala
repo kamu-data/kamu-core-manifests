@@ -23,4 +23,4 @@ case class Remote(
   id: RemoteID,
   /** Location of the remote */
   url: URI
-) extends Resource
+)
