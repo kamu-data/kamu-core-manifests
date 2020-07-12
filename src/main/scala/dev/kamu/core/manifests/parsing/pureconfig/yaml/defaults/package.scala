@@ -14,6 +14,7 @@ import java.time.Instant
 
 import pureconfig._
 import pureconfig.generic._
+import pureconfig.generic.semiauto
 import spire.math.Interval
 
 package object defaults {
@@ -45,6 +46,12 @@ package object defaults {
 
   implicit val intervalWriter: ConfigWriter[Interval[Instant]] =
     ConfigWriter[String].contramap(_.format())
+
+  implicit val datasetKindReader: ConfigReader[DatasetKind] =
+    semiauto.deriveEnumerationReader[DatasetKind]
+
+  implicit val datasetKindWriter: ConfigWriter[DatasetKind] =
+    semiauto.deriveEnumerationWriter[DatasetKind]
 
   implicit val sourceKindHint: FieldCoproductHint[SourceKind] =
     new FieldCoproductHint[SourceKind]("kind") {

@@ -215,4 +215,38 @@ class UtilsSpec extends FlatSpec with Matchers {
       )
     )
   }
+
+  val VALID_DATASET_SUMMARY =
+    """
+      |apiVersion: 1
+      |kind: DatasetSummary
+      |content:
+      |  id: baz
+      |  kind: root
+      |  datasetDependencies:
+      |  - foo
+      |  - bar
+      |  lastPulled: '1970-01-01T00:02:00.000Z'
+      |  dataSize: 1024
+      |  numRecords: 100
+    """.stripMargin
+
+  it should "successfully load dataset summary manifest" in {
+    val block = yaml.load[Manifest[DatasetSummary]](VALID_DATASET_SUMMARY)
+
+    block should equal(
+      Manifest(
+        apiVersion = 1,
+        kind = "DatasetSummary",
+        content = DatasetSummary(
+          id = DatasetID("baz"),
+          kind = DatasetKind.Root,
+          datasetDependencies = Set(DatasetID("foo"), DatasetID("bar")),
+          lastPulled = Some(Instant.ofEpochSecond(120)),
+          dataSize = 1024,
+          numRecords = 100
+        )
+      )
+    )
+  }
 }
