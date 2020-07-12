@@ -88,6 +88,17 @@ package object manifests {
     }
   }
 
+  implicit class SnapshotOps(s: MergeStrategy.Snapshot) {
+    def withDefaults(): MergeStrategy.Snapshot = {
+      s.copy(
+        observationColumn = Some(s.observationColumn.getOrElse("observed")),
+        obsvAdded = Some(s.obsvAdded.getOrElse("I")),
+        obsvChanged = Some(s.obsvChanged.getOrElse("U")),
+        obsvRemoved = Some(s.obsvRemoved.getOrElse("D"))
+      )
+    }
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
   // Instant
   ////////////////////////////////////////////////////////////////////////////////

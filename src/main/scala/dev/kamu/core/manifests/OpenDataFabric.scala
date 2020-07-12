@@ -159,7 +159,9 @@ case class MetadataBlock(
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#readstep-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-sealed trait ReadStep
+sealed trait ReadStep {
+  def schema: Option[Vector[String]]
+}
 
 object ReadStep {
   case class Csv(
