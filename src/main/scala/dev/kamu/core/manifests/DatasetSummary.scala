@@ -17,7 +17,7 @@ case class DatasetSummary(
   /** Kind of a dataset (the kind cannot change throughout dataset's lifetime) */
   kind: DatasetKind,
   /** Set of immediate dependencies of this dataset */
-  datasetDependencies: Set[DatasetID] = Set.empty,
+  dependencies: Set[DatasetID] = Set.empty,
   /** Dataset vocabulary */
   vocab: Option[DatasetVocabulary] = None,
   /** The last time when this dataset had new data */

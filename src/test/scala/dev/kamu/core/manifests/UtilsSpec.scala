@@ -68,7 +68,7 @@ class UtilsSpec extends FlatSpec with Matchers {
             prepare = Some(
               Vector(
                 PrepStep.Decompress(
-                  format = "zip",
+                  format = CompressionFormat.Zip,
                   subPath = Some("data_*.csv")
                 )
               )
@@ -112,7 +112,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       FetchStep.FilesGlob(
         path = "/opt/x/*.txt",
         cache = Some(SourceCaching.Forever()),
-        order = Some(SourceOrdering.ByName())
+        order = Some(SourceOrdering.ByName)
       )
     )
   }
@@ -243,7 +243,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |content:
       |  id: baz
       |  kind: root
-      |  datasetDependencies:
+      |  dependencies:
       |  - foo
       |  - bar
       |  lastPulled: '1970-01-01T00:02:00.000Z'
@@ -261,7 +261,7 @@ class UtilsSpec extends FlatSpec with Matchers {
         content = DatasetSummary(
           id = DatasetID("baz"),
           kind = DatasetKind.Root,
-          datasetDependencies = Set(DatasetID("foo"), DatasetID("bar")),
+          dependencies = Set(DatasetID("foo"), DatasetID("bar")),
           lastPulled = Some(Instant.ofEpochSecond(120)),
           dataSize = 1024,
           numRecords = 100

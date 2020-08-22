@@ -53,18 +53,25 @@ package object defaults {
   implicit val datasetKindWriter: ConfigWriter[DatasetKind] =
     semiauto.deriveEnumerationWriter[DatasetKind]
 
-  // TODO: semiauto.deriveEnumerationReader doesn't work for some reason
   implicit val sourceOrderingReader: ConfigReader[SourceOrdering] =
-    ConfigReader[String] map {
-      case "byName"      => SourceOrdering.ByName()
-      case "byEventTime" => SourceOrdering.ByEventTime()
-    }
+    semiauto.deriveEnumerationReader[SourceOrdering](
+      ConfigFieldMapping(PascalCase, CamelCase)
+    )
 
   implicit val sourceOrderingWriter: ConfigWriter[SourceOrdering] =
-    ConfigWriter[String] contramap {
-      case SourceOrdering.ByName()      => "byName"
-      case SourceOrdering.ByEventTime() => "byEventTime"
-    }
+    semiauto.deriveEnumerationWriter[SourceOrdering](
+      ConfigFieldMapping(PascalCase, CamelCase)
+    )
+
+  implicit val compressionFormatReader: ConfigReader[CompressionFormat] =
+    semiauto.deriveEnumerationReader[CompressionFormat](
+      ConfigFieldMapping(PascalCase, CamelCase)
+    )
+
+  implicit val compressionFormatWriter: ConfigWriter[CompressionFormat] =
+    semiauto.deriveEnumerationWriter[CompressionFormat](
+      ConfigFieldMapping(PascalCase, CamelCase)
+    )
 
   implicit val datasetSourceHint: FieldCoproductHint[DatasetSource] =
     new FieldCoproductHint[DatasetSource]("kind") {

@@ -99,21 +99,6 @@ case class DataSlice(
 )
 
 ////////////////////////////////////////////////////////////////////////////////
-// SourceOrdering
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sourceordering-schema
-////////////////////////////////////////////////////////////////////////////////
-
-sealed trait SourceOrdering
-
-object SourceOrdering {
-  case class ByEventTime(
-    ) extends SourceOrdering
-
-  case class ByName(
-    ) extends SourceOrdering
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // MergeStrategy
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#mergestrategy-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +134,6 @@ case class MetadataBlock(
   systemTime: Instant,
   outputSlice: Option[DataSlice] = None,
   outputWatermark: Option[Instant] = None,
-  //outputSchema: Option[Schema] = None,
   inputSlices: Option[Vector[DataSlice]] = None,
   source: Option[DatasetSource] = None
 )
@@ -236,6 +220,13 @@ object FetchStep {
   ) extends FetchStep
 }
 
+sealed trait SourceOrdering
+
+object SourceOrdering {
+  case object ByEventTime extends SourceOrdering
+  case object ByName extends SourceOrdering
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PrepStep
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#prepstep-schema
@@ -245,13 +236,20 @@ sealed trait PrepStep
 
 object PrepStep {
   case class Decompress(
-    format: String,
+    format: CompressionFormat,
     subPath: Option[String] = None
   ) extends PrepStep
 
   case class Pipe(
     command: Vector[String]
   ) extends PrepStep
+}
+
+sealed trait CompressionFormat
+
+object CompressionFormat {
+  case object Gzip extends CompressionFormat
+  case object Zip extends CompressionFormat
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -262,6 +260,9 @@ object PrepStep {
 sealed trait EventTimeSource
 
 object EventTimeSource {
+  case class FromMetadata(
+    ) extends EventTimeSource
+
   case class FromPath(
     pattern: String,
     timestampFormat: Option[String] = None
