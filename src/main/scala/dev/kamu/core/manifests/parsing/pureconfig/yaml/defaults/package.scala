@@ -115,6 +115,9 @@ package object defaults {
         Introspector.decapitalize(name)
     }
 
-  implicit val transformHint: ProductHint[Transform] =
-    ProductHint[Transform](allowUnknownKeys = true)
+  implicit val transformHint: FieldCoproductHint[Transform] =
+    new FieldCoproductHint[Transform]("kind") {
+      override protected def fieldValue(name: String): String =
+        Introspector.decapitalize(name)
+    }
 }

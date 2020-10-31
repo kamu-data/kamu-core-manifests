@@ -40,6 +40,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      kind: csv
       |      header: true
       |    preprocess:
+      |      kind: sql
       |      engine: sparkSQL
       |      queries:
       |      - query: SELECT * FROM input
@@ -89,7 +90,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     ds.content.source
       .asInstanceOf[DatasetSource.Root]
-      .preprocessPartial
+      .preprocess
       .get
       .engine should equal(
       "sparkSQL"
@@ -129,6 +130,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    - com.naturalearthdata.countries.10m.admin0
       |    - com.naturalearthdata.countries.50m.admin0
       |    transform:
+      |      kind: sql
       |      engine: sparkSQL
       |      queries:
       |      - alias: com.naturalearthdata.countries.admin0
@@ -159,7 +161,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     ds.content.source
       .asInstanceOf[DatasetSource.Derivative]
-      .transformPartial
+      .transform
       .engine should equal("sparkSQL")
   }
 
@@ -177,6 +179,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |    - input1
       |    - input2
       |    transform:
+      |      kind: sql
       |      engine: sparkSQL
       |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
       |  outputSlice:
@@ -202,7 +205,7 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "MetadataBlock",
         content = MetadataBlock(
           blockHash = "ddeeaaddbbeeff",
-          prevBlockHash = "ffeebbddaaeedd",
+          prevBlockHash = Some("ffeebbddaaeedd"),
           systemTime = Instant.ofEpochMilli(0),
           source = block.content.source,
           outputSlice = Some(

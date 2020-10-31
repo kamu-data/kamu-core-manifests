@@ -38,20 +38,14 @@ object DatasetSource {
     fetch: FetchStep,
     prepare: Option[Vector[PrepStep]] = None,
     read: ReadStep,
-    preprocess: Option[ConfigObject] = None,
+    preprocess: Option[Transform] = None,
     merge: MergeStrategy
-  ) extends DatasetSource {
-    val preprocessPartial: Option[Transform] =
-      preprocess.map(c => yaml.load[Transform](c.toConfig))
-  }
+  ) extends DatasetSource
 
   case class Derivative(
     inputs: Vector[DatasetID],
-    transform: ConfigObject
-  ) extends DatasetSource {
-    val transformPartial: Transform =
-      yaml.load[Transform](transform.toConfig)
-  }
+    transform: Transform
+  ) extends DatasetSource
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +71,16 @@ object SourceCaching {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// TemporalTable
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#temporaltable-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class TemporalTable(
+  id: String,
+  primaryKey: Vector[String]
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // DatasetSnapshot
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#datasetsnapshot-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +100,16 @@ case class DataSlice(
   hash: String,
   interval: Interval[Instant],
   numRecords: Long
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// SqlQueryStep
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sqlquerystep-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class SqlQueryStep(
+  alias: Option[String] = None,
+  query: String
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +144,7 @@ object MergeStrategy {
 
 case class MetadataBlock(
   blockHash: String,
-  prevBlockHash: String,
+  prevBlockHash: Option[String] = None,
   systemTime: Instant,
   outputSlice: Option[DataSlice] = None,
   outputWatermark: Option[Instant] = None,
@@ -194,9 +208,20 @@ object ReadStep {
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transform-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class Transform(
-  engine: String
-)
+sealed trait Transform {
+  def engine: String
+  def version: Option[String]
+}
+
+object Transform {
+  case class Sql(
+    engine: String,
+    version: Option[String] = None,
+    query: Option[String] = None,
+    queries: Option[Vector[SqlQueryStep]] = None,
+    temporalTables: Option[Vector[TemporalTable]] = None
+  ) extends Transform
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // FetchStep
