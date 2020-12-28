@@ -24,7 +24,8 @@ case class IngestRequest(
   source: DatasetSource.Root,
   datasetVocab: DatasetVocabulary,
   checkpointsDir: String,
-  dataDir: String
+  dataDir: String,
+  outDataPath: String
 )
 
 case class IngestResult(
@@ -41,7 +42,8 @@ case class ExecuteQueryRequest(
   datasetVocabs: Map[String, DatasetVocabulary],
   inputSlices: Map[String, InputDataSlice],
   dataDirs: Map[String, String],
-  checkpointsDir: String
+  checkpointsDir: String,
+  outDataPath: String
 )
 
 case class ExecuteQueryResult(
