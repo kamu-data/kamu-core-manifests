@@ -41,18 +41,19 @@ case class ExecuteQueryRequest(
   source: DatasetSource.Derivative,
   datasetVocabs: Map[String, DatasetVocabulary],
   inputSlices: Map[String, InputDataSlice],
-  dataDirs: Map[String, String],
-  checkpointsDir: String,
+  prevCheckpointDir: Option[String],
+  newCheckpointDir: String,
   outDataPath: String
 )
 
 case class ExecuteQueryResult(
-  block: MetadataBlock,
-  dataFileName: Option[String]
+  block: MetadataBlock
 )
 
 case class InputDataSlice(
   interval: Interval[Instant],
+  dataPaths: Vector[String],
+  schemaFile: String, // TODO: Replace with just DDL schema
   explicitWatermarks: Vector[Watermark] = Vector.empty
 )
 
