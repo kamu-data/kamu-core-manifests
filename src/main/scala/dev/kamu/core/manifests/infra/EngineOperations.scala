@@ -23,7 +23,8 @@ case class IngestRequest(
   eventTime: Option[Instant],
   source: DatasetSource.Root,
   datasetVocab: DatasetVocabulary,
-  checkpointsDir: String,
+  prevCheckpointDir: Option[String],
+  newCheckpointDir: String,
   dataDir: String,
   outDataPath: String
 )
