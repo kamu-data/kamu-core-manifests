@@ -9,13 +9,11 @@
 package dev.kamu.core.manifests
 
 import java.net.URI
+import java.nio.file.Path
 import java.time.Instant
 
 import com.typesafe.config.ConfigObject
 import spire.math.Interval
-import pureconfig.generic.auto._
-import dev.kamu.core.manifests.parsing.pureconfig.yaml.defaults._
-import dev.kamu.core.manifests.parsing.pureconfig.yaml
 
 ////////////////////////////////////////////////////////////////////////////////
 // WARNING: This file is auto-generated from Open Data Fabric Schemas
@@ -25,6 +23,28 @@ import dev.kamu.core.manifests.parsing.pureconfig.yaml
 case class DatasetID(s: String) extends AnyVal {
   override def toString: String = s
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// DataSlice
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#dataslice-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class DataSlice(
+  hash: String,
+  interval: Interval[Instant],
+  numRecords: Long
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// DatasetSnapshot
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#datasetsnapshot-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class DatasetSnapshot(
+  id: DatasetID,
+  source: DatasetSource,
+  vocab: Option[DatasetVocabulary] = None
+)
 
 ////////////////////////////////////////////////////////////////////////////////
 // DatasetSource
@@ -59,58 +79,90 @@ case class DatasetVocabulary(
 )
 
 ////////////////////////////////////////////////////////////////////////////////
-// SourceCaching
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sourcecaching-schema
+// EventTimeSource
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#eventtimesource-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-sealed trait SourceCaching
+sealed trait EventTimeSource
 
-object SourceCaching {
-  case class Forever(
-    ) extends SourceCaching
+object EventTimeSource {
+  case class FromMetadata(
+    ) extends EventTimeSource
+
+  case class FromPath(
+    pattern: String,
+    timestampFormat: Option[String] = None
+  ) extends EventTimeSource
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// TemporalTable
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#temporaltable-schema
+// ExecuteQueryRequest
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryrequest-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class TemporalTable(
-  id: String,
-  primaryKey: Vector[String]
+case class ExecuteQueryRequest(
+  datasetID: DatasetID,
+  vocab: DatasetVocabulary,
+  transform: Transform,
+  inputs: Vector[QueryInput],
+  prevCheckpointDir: Option[Path] = None,
+  newCheckpointDir: Path,
+  outDataPath: Path
 )
 
 ////////////////////////////////////////////////////////////////////////////////
-// DatasetSnapshot
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#datasetsnapshot-schema
+// ExecuteQueryResponse
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryresponse-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class DatasetSnapshot(
-  id: DatasetID,
-  source: DatasetSource,
-  vocab: Option[DatasetVocabulary] = None
-)
+sealed trait ExecuteQueryResponse
+
+object ExecuteQueryResponse {
+  case class Progress(
+    ) extends ExecuteQueryResponse
+
+  case class Success(
+    metadataBlock: MetadataBlock
+  ) extends ExecuteQueryResponse
+
+  case class InvalidQuery(
+    message: String
+  ) extends ExecuteQueryResponse
+
+  case class InternalError(
+    message: String,
+    backtrace: Option[String] = None
+  ) extends ExecuteQueryResponse
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-// DataSlice
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#dataslice-schema
+// FetchStep
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#fetchstep-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class DataSlice(
-  hash: String,
-  interval: Interval[Instant],
-  numRecords: Long
-)
+sealed trait FetchStep
 
-////////////////////////////////////////////////////////////////////////////////
-// SqlQueryStep
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sqlquerystep-schema
-////////////////////////////////////////////////////////////////////////////////
+object FetchStep {
+  case class Url(
+    url: URI,
+    eventTime: Option[EventTimeSource] = None,
+    cache: Option[SourceCaching] = None
+  ) extends FetchStep
 
-case class SqlQueryStep(
-  alias: Option[String] = None,
-  query: String
-)
+  case class FilesGlob(
+    path: String,
+    eventTime: Option[EventTimeSource] = None,
+    cache: Option[SourceCaching] = None,
+    order: Option[SourceOrdering] = None
+  ) extends FetchStep
+}
+
+sealed trait SourceOrdering
+
+object SourceOrdering {
+  case object ByEventTime extends SourceOrdering
+  case object ByName extends SourceOrdering
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // MergeStrategy
@@ -149,7 +201,47 @@ case class MetadataBlock(
   outputSlice: Option[DataSlice] = None,
   outputWatermark: Option[Instant] = None,
   inputSlices: Option[Vector[DataSlice]] = None,
-  source: Option[DatasetSource] = None
+  source: Option[DatasetSource] = None,
+  vocab: Option[DatasetVocabulary] = None
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// PrepStep
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#prepstep-schema
+////////////////////////////////////////////////////////////////////////////////
+
+sealed trait PrepStep
+
+object PrepStep {
+  case class Decompress(
+    format: CompressionFormat,
+    subPath: Option[String] = None
+  ) extends PrepStep
+
+  case class Pipe(
+    command: Vector[String]
+  ) extends PrepStep
+}
+
+sealed trait CompressionFormat
+
+object CompressionFormat {
+  case object Gzip extends CompressionFormat
+  case object Zip extends CompressionFormat
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// QueryInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#queryinput-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class QueryInput(
+  datasetID: DatasetID,
+  vocab: DatasetVocabulary,
+  interval: Interval[Instant],
+  dataPaths: Vector[Path],
+  schemaFile: Path,
+  explicitWatermarks: Vector[Watermark]
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -204,6 +296,38 @@ object ReadStep {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// SourceCaching
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sourcecaching-schema
+////////////////////////////////////////////////////////////////////////////////
+
+sealed trait SourceCaching
+
+object SourceCaching {
+  case class Forever(
+    ) extends SourceCaching
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// SqlQueryStep
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sqlquerystep-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class SqlQueryStep(
+  alias: Option[String] = None,
+  query: String
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// TemporalTable
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#temporaltable-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class TemporalTable(
+  id: String,
+  primaryKey: Vector[String]
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // Transform
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transform-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -224,72 +348,11 @@ object Transform {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// FetchStep
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#fetchstep-schema
+// Watermark
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#watermark-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-sealed trait FetchStep
-
-object FetchStep {
-  case class Url(
-    url: URI,
-    eventTime: Option[EventTimeSource] = None,
-    cache: Option[SourceCaching] = None
-  ) extends FetchStep
-
-  case class FilesGlob(
-    path: String,
-    eventTime: Option[EventTimeSource] = None,
-    cache: Option[SourceCaching] = None,
-    order: Option[SourceOrdering] = None
-  ) extends FetchStep
-}
-
-sealed trait SourceOrdering
-
-object SourceOrdering {
-  case object ByEventTime extends SourceOrdering
-  case object ByName extends SourceOrdering
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// PrepStep
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#prepstep-schema
-////////////////////////////////////////////////////////////////////////////////
-
-sealed trait PrepStep
-
-object PrepStep {
-  case class Decompress(
-    format: CompressionFormat,
-    subPath: Option[String] = None
-  ) extends PrepStep
-
-  case class Pipe(
-    command: Vector[String]
-  ) extends PrepStep
-}
-
-sealed trait CompressionFormat
-
-object CompressionFormat {
-  case object Gzip extends CompressionFormat
-  case object Zip extends CompressionFormat
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// EventTimeSource
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#eventtimesource-schema
-////////////////////////////////////////////////////////////////////////////////
-
-sealed trait EventTimeSource
-
-object EventTimeSource {
-  case class FromMetadata(
-    ) extends EventTimeSource
-
-  case class FromPath(
-    pattern: String,
-    timestampFormat: Option[String] = None
-  ) extends EventTimeSource
-}
+case class Watermark(
+  systemTime: Instant,
+  eventTime: Instant
+)

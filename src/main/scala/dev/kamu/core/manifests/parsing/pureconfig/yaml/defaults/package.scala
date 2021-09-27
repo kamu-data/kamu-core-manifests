@@ -120,4 +120,11 @@ package object defaults {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
+
+  implicit val executeQueryResponseHint
+    : FieldCoproductHint[ExecuteQueryResponse] =
+    new FieldCoproductHint[ExecuteQueryResponse]("kind") {
+      override protected def fieldValue(name: String): String =
+        Introspector.decapitalize(name)
+    }
 }
