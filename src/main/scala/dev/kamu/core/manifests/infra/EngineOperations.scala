@@ -28,7 +28,3 @@ case class IngestRequest(
   dataDir: String,
   outDataPath: String
 )
-
-case class IngestResult(
-  block: MetadataBlock
-)
