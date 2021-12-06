@@ -15,7 +15,6 @@ import java.time.Instant
 import pureconfig._
 import pureconfig.generic._
 import pureconfig.generic.semiauto
-import spire.math.Interval
 
 package object defaults {
   import dev.kamu.core.manifests._
@@ -39,13 +38,6 @@ package object defaults {
 
   implicit val instantWriter: ConfigWriter[Instant] = ConfigWriter[String]
     .contramap((i: Instant) => i.toString)
-
-  implicit val intervalReader: ConfigReader[Interval[Instant]] =
-    ConfigReader[String]
-      .map(s => IntervalOps.parse(s, Instant.parse))
-
-  implicit val intervalWriter: ConfigWriter[Interval[Instant]] =
-    ConfigWriter[String].contramap(_.format())
 
   implicit val datasetKindReader: ConfigReader[DatasetKind] =
     semiauto.deriveEnumerationReader[DatasetKind]

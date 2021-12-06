@@ -11,7 +11,6 @@ package dev.kamu.core.manifests.infra
 import java.time.Instant
 
 import dev.kamu.core.manifests._
-import spire.math.Interval
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ingest
@@ -20,7 +19,9 @@ import spire.math.Interval
 case class IngestRequest(
   datasetID: DatasetID,
   ingestPath: String,
+  systemTime: Instant,
   eventTime: Option[Instant],
+  offset: Long,
   source: DatasetSource.Root,
   datasetVocab: DatasetVocabulary,
   prevCheckpointDir: Option[String],

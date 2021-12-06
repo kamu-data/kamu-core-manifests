@@ -15,7 +15,6 @@ import org.scalatest._
 import dev.kamu.core.manifests.parsing.pureconfig.yaml
 import yaml.defaults._
 import pureconfig.generic.auto._
-import spire.math.Interval
 
 class UtilsSpec extends FlatSpec with Matchers {
 
@@ -183,17 +182,23 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      engine: sparkSQL
       |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
       |  outputSlice:
-      |    hash: ffaabb
-      |    interval: '[1970-01-01T00:00:00.000Z, 1970-01-01T00:00:00.000Z]'
-      |    numRecords: 10
+      |    dataLogicalHash: ffaabb
+      |    dataInterval:
+      |      start: 0
+      |      end: 9
       |  outputWatermark: '1970-01-01T00:01:00.000Z'
       |  inputSlices:
-      |  - hash: aa
-      |    interval: '(1970-01-01T00:01:00.000Z, 1970-01-01T00:02:00.000Z]'
-      |    numRecords: 10
-      |  - hash: zz
-      |    interval: '()'
-      |    numRecords: 0
+      |  - datasetID: input1
+      |    blockInterval:
+      |      start: aa
+      |      end: bb
+      |    dataInterval:
+      |      start: 0
+      |      end: 9
+      |  - datasetID: input2
+      |    blockInterval:
+      |      start: cc
+      |      end: dd
     """.stripMargin
 
   it should "successfully load metadata block manifest" in {
@@ -209,28 +214,32 @@ class UtilsSpec extends FlatSpec with Matchers {
           systemTime = Instant.ofEpochMilli(0),
           source = block.content.source,
           outputSlice = Some(
-            DataSlice(
-              hash = "ffaabb",
-              interval = Interval.point(Instant.ofEpochSecond(0)),
-              numRecords = 10
+            OutputSlice(
+              dataLogicalHash = "ffaabb",
+              dataInterval = OffsetInterval(
+                start = 0,
+                end = 9
+              )
             )
           ),
           outputWatermark = Some(Instant.ofEpochSecond(60)),
           inputSlices = Some(
             Vector(
-              DataSlice(
-                hash = "aa",
-                interval = Interval
-                  .openLower(
-                    Instant.ofEpochSecond(60),
-                    Instant.ofEpochSecond(120)
-                  ),
-                numRecords = 10
+              InputSlice(
+                datasetID = DatasetID("input1"),
+                blockInterval = BlockInterval(
+                  start = "aa",
+                  end = "bb"
+                ),
+                dataInterval = Some(OffsetInterval(start = 0, end = 9))
               ),
-              DataSlice(
-                hash = "zz",
-                interval = Interval.empty,
-                numRecords = 0
+              InputSlice(
+                datasetID = DatasetID("input2"),
+                blockInterval = BlockInterval(
+                  start = "cc",
+                  end = "dd"
+                ),
+                dataInterval = None
               )
             )
           )

@@ -13,7 +13,6 @@ import java.nio.file.Path
 import java.time.Instant
 
 import com.typesafe.config.ConfigObject
-import spire.math.Interval
 
 ////////////////////////////////////////////////////////////////////////////////
 // WARNING: This file is auto-generated from Open Data Fabric Schemas
@@ -25,14 +24,13 @@ case class DatasetID(s: String) extends AnyVal {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// DataSlice
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#dataslice-schema
+// BlockInterval
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#blockinterval-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class DataSlice(
-  hash: String,
-  interval: Interval[Instant],
-  numRecords: Long
+case class BlockInterval(
+  start: String,
+  end: String
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +73,8 @@ object DatasetSource {
 
 case class DatasetVocabulary(
   systemTimeColumn: Option[String] = None,
-  eventTimeColumn: Option[String] = None
+  eventTimeColumn: Option[String] = None,
+  offsetColumn: Option[String] = None
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -102,6 +101,8 @@ object EventTimeSource {
 
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
+  systemTime: Instant,
+  offset: Long,
   vocab: DatasetVocabulary,
   transform: Transform,
   inputs: Vector[QueryInput],
@@ -165,6 +166,17 @@ object SourceOrdering {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// InputSlice
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#inputslice-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class InputSlice(
+  datasetID: DatasetID,
+  blockInterval: BlockInterval,
+  dataInterval: Option[OffsetInterval] = None
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // MergeStrategy
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#mergestrategy-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,11 +210,31 @@ case class MetadataBlock(
   blockHash: String,
   prevBlockHash: Option[String] = None,
   systemTime: Instant,
-  outputSlice: Option[DataSlice] = None,
+  outputSlice: Option[OutputSlice] = None,
   outputWatermark: Option[Instant] = None,
-  inputSlices: Option[Vector[DataSlice]] = None,
+  inputSlices: Option[Vector[InputSlice]] = None,
   source: Option[DatasetSource] = None,
   vocab: Option[DatasetVocabulary] = None
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// OffsetInterval
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#offsetinterval-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class OffsetInterval(
+  start: Long,
+  end: Long
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// OutputSlice
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#outputslice-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class OutputSlice(
+  dataLogicalHash: String,
+  dataInterval: OffsetInterval
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +270,7 @@ object CompressionFormat {
 case class QueryInput(
   datasetID: DatasetID,
   vocab: DatasetVocabulary,
-  interval: Interval[Instant],
+  dataInterval: Option[OffsetInterval] = None,
   dataPaths: Vector[Path],
   schemaFile: Path,
   explicitWatermarks: Vector[Watermark]
