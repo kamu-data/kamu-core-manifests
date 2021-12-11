@@ -183,6 +183,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
       |  outputSlice:
       |    dataLogicalHash: ffaabb
+      |    dataPhysicalHash: ffaabb
       |    dataInterval:
       |      start: 0
       |      end: 9
@@ -216,6 +217,7 @@ class UtilsSpec extends FlatSpec with Matchers {
           outputSlice = Some(
             OutputSlice(
               dataLogicalHash = "ffaabb",
+              dataPhysicalHash = "ffaabb",
               dataInterval = OffsetInterval(
                 start = 0,
                 end = 9
@@ -227,17 +229,21 @@ class UtilsSpec extends FlatSpec with Matchers {
             Vector(
               InputSlice(
                 datasetID = DatasetID("input1"),
-                blockInterval = BlockInterval(
-                  start = "aa",
-                  end = "bb"
+                blockInterval = Some(
+                  BlockInterval(
+                    start = "aa",
+                    end = "bb"
+                  )
                 ),
                 dataInterval = Some(OffsetInterval(start = 0, end = 9))
               ),
               InputSlice(
                 datasetID = DatasetID("input2"),
-                blockInterval = BlockInterval(
-                  start = "cc",
-                  end = "dd"
+                blockInterval = Some(
+                  BlockInterval(
+                    start = "cc",
+                    end = "dd"
+                  )
                 ),
                 dataInterval = None
               )
