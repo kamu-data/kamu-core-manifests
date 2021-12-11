@@ -123,7 +123,8 @@ object ExecuteQueryResponse {
     ) extends ExecuteQueryResponse
 
   case class Success(
-    metadataBlock: MetadataBlock
+    dataInterval: Option[OffsetInterval] = None,
+    outputWatermark: Option[Instant] = None
   ) extends ExecuteQueryResponse
 
   case class InvalidQuery(
@@ -172,7 +173,7 @@ object SourceOrdering {
 
 case class InputSlice(
   datasetID: DatasetID,
-  blockInterval: BlockInterval,
+  blockInterval: Option[BlockInterval] = None,
   dataInterval: Option[OffsetInterval] = None
 )
 
@@ -234,6 +235,7 @@ case class OffsetInterval(
 
 case class OutputSlice(
   dataLogicalHash: String,
+  dataPhysicalHash: String,
   dataInterval: OffsetInterval
 )
 
