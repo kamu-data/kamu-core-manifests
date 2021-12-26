@@ -23,7 +23,7 @@ class UtilsSpec extends FlatSpec with Matchers {
       |apiVersion: 1
       |kind: DatasetSnapshot
       |content:
-      |  id: kamu.test
+      |  name: kamu.test
       |  source:
       |    kind: root
       |    fetch:
@@ -59,7 +59,7 @@ class UtilsSpec extends FlatSpec with Matchers {
         apiVersion = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
-          id = DatasetID("kamu.test"),
+          name = DatasetName("kamu.test"),
           source = DatasetSource.Root(
             fetch = FetchStep.Url(
               url = URI.create("ftp://kamu.dev/test.zip"),
@@ -122,12 +122,12 @@ class UtilsSpec extends FlatSpec with Matchers {
       |apiVersion: 1
       |kind: DatasetSnapshot
       |content:
-      |  id: com.naturalearthdata.countries.admin0
+      |  name: com.naturalearthdata.countries.admin0
       |  source:
       |    kind: derivative
       |    inputs:
-      |    - com.naturalearthdata.countries.10m.admin0
-      |    - com.naturalearthdata.countries.50m.admin0
+      |    - name: com.naturalearthdata.countries.10m.admin0
+      |    - name: com.naturalearthdata.countries.50m.admin0
       |    transform:
       |      kind: sql
       |      engine: sparkSQL
@@ -145,11 +145,17 @@ class UtilsSpec extends FlatSpec with Matchers {
         apiVersion = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
-          id = DatasetID("com.naturalearthdata.countries.admin0"),
+          name = DatasetName("com.naturalearthdata.countries.admin0"),
           source = DatasetSource.Derivative(
             inputs = Vector(
-              DatasetID("com.naturalearthdata.countries.10m.admin0"),
-              DatasetID("com.naturalearthdata.countries.50m.admin0")
+              TransformInput(
+                None,
+                DatasetName("com.naturalearthdata.countries.10m.admin0")
+              ),
+              TransformInput(
+                None,
+                DatasetName("com.naturalearthdata.countries.50m.admin0")
+              )
             ),
             transform =
               ds.content.source.asInstanceOf[DatasetSource.Derivative].transform
@@ -169,14 +175,13 @@ class UtilsSpec extends FlatSpec with Matchers {
       |apiVersion: 1
       |kind: MetadataBlock
       |content:
-      |  blockHash: ddeeaaddbbeeff
       |  prevBlockHash: ffeebbddaaeedd
       |  systemTime: '1970-01-01T00:00:00.000Z'
       |  source:
       |    kind: derivative
       |    inputs:
-      |    - input1
-      |    - input2
+      |    - name: input1
+      |    - name: input2
       |    transform:
       |      kind: sql
       |      engine: sparkSQL
@@ -210,14 +215,13 @@ class UtilsSpec extends FlatSpec with Matchers {
         apiVersion = 1,
         kind = "MetadataBlock",
         content = MetadataBlock(
-          blockHash = "ddeeaaddbbeeff",
-          prevBlockHash = Some("ffeebbddaaeedd"),
+          prevBlockHash = Some(Multihash("ffeebbddaaeedd")),
           systemTime = Instant.ofEpochMilli(0),
           source = block.content.source,
           outputSlice = Some(
             OutputSlice(
-              dataLogicalHash = "ffaabb",
-              dataPhysicalHash = "ffaabb",
+              dataLogicalHash = Multihash("ffaabb"),
+              dataPhysicalHash = Multihash("ffaabb"),
               dataInterval = OffsetInterval(
                 start = 0,
                 end = 9
@@ -231,8 +235,8 @@ class UtilsSpec extends FlatSpec with Matchers {
                 datasetID = DatasetID("input1"),
                 blockInterval = Some(
                   BlockInterval(
-                    start = "aa",
-                    end = "bb"
+                    start = Multihash("aa"),
+                    end = Multihash("bb")
                   )
                 ),
                 dataInterval = Some(OffsetInterval(start = 0, end = 9))
@@ -241,8 +245,8 @@ class UtilsSpec extends FlatSpec with Matchers {
                 datasetID = DatasetID("input2"),
                 blockInterval = Some(
                   BlockInterval(
-                    start = "cc",
-                    end = "dd"
+                    start = Multihash("cc"),
+                    end = Multihash("dd")
                   )
                 ),
                 dataInterval = None
@@ -259,7 +263,8 @@ class UtilsSpec extends FlatSpec with Matchers {
       |apiVersion: 1
       |kind: DatasetSummary
       |content:
-      |  id: baz
+      |  id: "did:odf:abcdef"
+      |  name: baz
       |  kind: root
       |  dependencies:
       |  - foo
@@ -277,7 +282,8 @@ class UtilsSpec extends FlatSpec with Matchers {
         apiVersion = 1,
         kind = "DatasetSummary",
         content = DatasetSummary(
-          id = DatasetID("baz"),
+          id = DatasetID("did:odf:abcdef"),
+          name = DatasetName("baz"),
           kind = DatasetKind.Root,
           dependencies = Set(DatasetID("foo"), DatasetID("bar")),
           lastPulled = Some(Instant.ofEpochSecond(120)),

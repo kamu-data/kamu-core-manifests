@@ -18,6 +18,7 @@ import dev.kamu.core.manifests._
 
 case class IngestRequest(
   datasetID: DatasetID,
+  datasetName: DatasetName,
   ingestPath: String,
   systemTime: Instant,
   eventTime: Option[Instant],

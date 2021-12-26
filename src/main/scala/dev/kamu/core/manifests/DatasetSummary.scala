@@ -14,6 +14,8 @@ import java.time.Instant
 case class DatasetSummary(
   /** Unique identifier of the dataset */
   id: DatasetID,
+  /** Alias of the dataset used in queries */
+  name: DatasetName,
   /** Kind of a dataset (the kind cannot change throughout dataset's lifetime) */
   kind: DatasetKind,
   /** Set of immediate dependencies of this dataset */

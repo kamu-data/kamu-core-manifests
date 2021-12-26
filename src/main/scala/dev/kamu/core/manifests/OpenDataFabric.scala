@@ -14,12 +14,20 @@ import java.time.Instant
 
 import com.typesafe.config.ConfigObject
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // WARNING: This file is auto-generated from Open Data Fabric Schemas
 // See: http://opendatafabric.org/
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+case class Multihash(s: String) extends AnyVal {
+  override def toString: String = s
+}
 
 case class DatasetID(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class DatasetName(s: String) extends AnyVal {
   override def toString: String = s
 }
 
@@ -29,8 +37,8 @@ case class DatasetID(s: String) extends AnyVal {
 ////////////////////////////////////////////////////////////////////////////////
 
 case class BlockInterval(
-  start: String,
-  end: String
+  start: Multihash,
+  end: Multihash
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +47,7 @@ case class BlockInterval(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class DatasetSnapshot(
-  id: DatasetID,
+  name: DatasetName,
   source: DatasetSource,
   vocab: Option[DatasetVocabulary] = None
 )
@@ -61,7 +69,7 @@ object DatasetSource {
   ) extends DatasetSource
 
   case class Derivative(
-    inputs: Vector[DatasetID],
+    inputs: Vector[TransformInput],
     transform: Transform
   ) extends DatasetSource
 }
@@ -95,17 +103,33 @@ object EventTimeSource {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// ExecuteQueryInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryinput-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class ExecuteQueryInput(
+  datasetID: DatasetID,
+  datasetName: DatasetName,
+  vocab: DatasetVocabulary,
+  dataInterval: Option[OffsetInterval] = None,
+  dataPaths: Vector[Path],
+  schemaFile: Path,
+  explicitWatermarks: Vector[Watermark]
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // ExecuteQueryRequest
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryrequest-schema
 ////////////////////////////////////////////////////////////////////////////////
 
 case class ExecuteQueryRequest(
   datasetID: DatasetID,
+  datasetName: DatasetName,
   systemTime: Instant,
   offset: Long,
   vocab: DatasetVocabulary,
   transform: Transform,
-  inputs: Vector[QueryInput],
+  inputs: Vector[ExecuteQueryInput],
   prevCheckpointDir: Option[Path] = None,
   newCheckpointDir: Path,
   outDataPath: Path
@@ -208,14 +232,14 @@ object MergeStrategy {
 ////////////////////////////////////////////////////////////////////////////////
 
 case class MetadataBlock(
-  blockHash: String,
-  prevBlockHash: Option[String] = None,
+  prevBlockHash: Option[Multihash] = None,
   systemTime: Instant,
   outputSlice: Option[OutputSlice] = None,
   outputWatermark: Option[Instant] = None,
   inputSlices: Option[Vector[InputSlice]] = None,
   source: Option[DatasetSource] = None,
-  vocab: Option[DatasetVocabulary] = None
+  vocab: Option[DatasetVocabulary] = None,
+  seed: Option[DatasetID] = None
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -234,8 +258,8 @@ case class OffsetInterval(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class OutputSlice(
-  dataLogicalHash: String,
-  dataPhysicalHash: String,
+  dataLogicalHash: Multihash,
+  dataPhysicalHash: Multihash,
   dataInterval: OffsetInterval
 )
 
@@ -263,20 +287,6 @@ object CompressionFormat {
   case object Gzip extends CompressionFormat
   case object Zip extends CompressionFormat
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// QueryInput
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#queryinput-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class QueryInput(
-  datasetID: DatasetID,
-  vocab: DatasetVocabulary,
-  dataInterval: Option[OffsetInterval] = None,
-  dataPaths: Vector[Path],
-  schemaFile: Path,
-  explicitWatermarks: Vector[Watermark]
-)
 
 ////////////////////////////////////////////////////////////////////////////////
 // ReadStep
@@ -380,6 +390,16 @@ object Transform {
     temporalTables: Option[Vector[TemporalTable]] = None
   ) extends Transform
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// TransformInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transforminput-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class TransformInput(
+  id: Option[DatasetID] = None,
+  name: DatasetName
+)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Watermark

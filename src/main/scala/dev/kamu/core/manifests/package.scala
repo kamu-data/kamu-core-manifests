@@ -8,8 +8,6 @@
 
 package dev.kamu.core
 
-import java.time.Instant
-
 package object manifests {
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -21,13 +19,6 @@ package object manifests {
       s.source match {
         case _: DatasetSource.Root       => DatasetKind.Root
         case _: DatasetSource.Derivative => DatasetKind.Derivative
-      }
-    }
-
-    def dependsOn: Seq[DatasetID] = {
-      s.source match {
-        case d: DatasetSource.Derivative => d.inputs
-        case _                           => Seq.empty
       }
     }
   }
