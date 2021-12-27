@@ -20,7 +20,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_ROOT_POLLING_DATASET =
     """
-      |apiVersion: 1
+      |version: 1
       |kind: DatasetSnapshot
       |content:
       |  name: kamu.test
@@ -56,7 +56,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     ds should equal(
       Manifest(
-        apiVersion = 1,
+        version = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           name = DatasetName("kamu.test"),
@@ -119,7 +119,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_DERIVATIVE_STREAMING_DATASET =
     """
-      |apiVersion: 1
+      |version: 1
       |kind: DatasetSnapshot
       |content:
       |  name: com.naturalearthdata.countries.admin0
@@ -142,7 +142,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     ds should equal(
       Manifest(
-        apiVersion = 1,
+        version = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           name = DatasetName("com.naturalearthdata.countries.admin0"),
@@ -172,7 +172,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_METADATA_BLOCK =
     """
-      |apiVersion: 1
+      |version: 1
       |kind: MetadataBlock
       |content:
       |  prevBlockHash: ffeebbddaaeedd
@@ -212,7 +212,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     block should equal(
       Manifest(
-        apiVersion = 1,
+        version = 1,
         kind = "MetadataBlock",
         content = MetadataBlock(
           prevBlockHash = Some(Multihash("ffeebbddaaeedd")),
@@ -260,7 +260,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_DATASET_SUMMARY =
     """
-      |apiVersion: 1
+      |version: 1
       |kind: DatasetSummary
       |content:
       |  id: "did:odf:abcdef"
@@ -279,7 +279,7 @@ class UtilsSpec extends FlatSpec with Matchers {
 
     block should equal(
       Manifest(
-        apiVersion = 1,
+        version = 1,
         kind = "DatasetSummary",
         content = DatasetSummary(
           id = DatasetID("did:odf:abcdef"),
