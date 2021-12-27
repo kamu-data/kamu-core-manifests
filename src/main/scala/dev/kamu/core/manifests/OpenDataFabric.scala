@@ -367,7 +367,7 @@ case class SqlQueryStep(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class TemporalTable(
-  id: String,
+  name: String,
   primaryKey: Vector[String]
 )
 
