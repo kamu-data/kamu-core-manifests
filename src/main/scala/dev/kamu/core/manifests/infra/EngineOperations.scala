@@ -23,10 +23,10 @@ case class IngestRequest(
   systemTime: Instant,
   eventTime: Option[Instant],
   offset: Long,
-  source: DatasetSource.Root,
+  source: SetPollingSource,
   datasetVocab: DatasetVocabulary,
-  prevCheckpointDir: Option[String],
-  newCheckpointDir: String,
+  prevCheckpointPath: Option[String],
+  newCheckpointPath: String,
   dataDir: String,
   outDataPath: String
 )

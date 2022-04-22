@@ -14,15 +14,6 @@ package object manifests {
   // Extensions
   ////////////////////////////////////////////////////////////////////////////////
 
-  implicit class DatasetSnapshotOps(s: DatasetSnapshot) {
-    def kind: DatasetKind = {
-      s.source match {
-        case _: DatasetSource.Root       => DatasetKind.Root
-        case _: DatasetSource.Derivative => DatasetKind.Derivative
-      }
-    }
-  }
-
   implicit class DatasetVocabularyOps(v: DatasetVocabulary) {
     def withDefaults(): DatasetVocabulary = {
       v.copy(

@@ -24,31 +24,31 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  name: kamu.test
-      |  source:
-      |    kind: root
-      |    fetch:
-      |      kind: url
-      |      url: ftp://kamu.dev/test.zip
-      |      cache:
-      |        kind: forever
-      |    prepare:
-      |    - kind: decompress
-      |      format: zip
-      |      subPath: data_*.csv
-      |    read:
-      |      kind: csv
-      |      header: true
-      |    preprocess:
-      |      kind: sql
-      |      engine: sparkSQL
-      |      queries:
-      |      - query: SELECT * FROM input
-      |    merge:
-      |      kind: snapshot
-      |      primaryKey:
-      |      - id
-      |  vocab:
-      |    eventTimeColumn: date
+      |  kind: root
+      |  metadata:
+      |    - kind: setPollingSource
+      |      fetch:
+      |        kind: url
+      |        url: ftp://kamu.dev/test.zip
+      |        cache:
+      |          kind: forever
+      |      prepare:
+      |        - kind: decompress
+      |          format: zip
+      |          subPath: data_*.csv
+      |      read:
+      |        kind: csv
+      |        header: true
+      |      preprocess:
+      |        kind: sql
+      |        engine: sparkSQL
+      |        query: SELECT * FROM input
+      |      merge:
+      |        kind: snapshot
+      |        primaryKey:
+      |          - id
+      |    - kind: setVocab
+      |      eventTimeColumn: date
     """.stripMargin
 
   "YAML utils" should "successfully load root dataset manifest" in {
@@ -60,39 +60,40 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           name = DatasetName("kamu.test"),
-          source = DatasetSource.Root(
-            fetch = FetchStep.Url(
-              url = URI.create("ftp://kamu.dev/test.zip"),
-              cache = Some(SourceCaching.Forever())
-            ),
-            prepare = Some(
-              Vector(
-                PrepStep.Decompress(
-                  format = CompressionFormat.Zip,
-                  subPath = Some("data_*.csv")
+          kind = DatasetKind.Root,
+          metadata = Vector(
+            SetPollingSource(
+              fetch = FetchStep.Url(
+                url = URI.create("ftp://kamu.dev/test.zip"),
+                cache = Some(SourceCaching.Forever())
+              ),
+              prepare = Some(
+                Vector(
+                  PrepStep.Decompress(
+                    format = CompressionFormat.Zip,
+                    subPath = Some("data_*.csv")
+                  )
                 )
+              ),
+              read = ReadStep.Csv(
+                header = Some(true)
+              ),
+              preprocess = Some(
+                Transform.Sql(
+                  engine = "sparkSQL",
+                  query = Some("SELECT * FROM input"),
+                  queries = None,
+                  temporalTables = None
+                )
+              ),
+              merge = MergeStrategy.Snapshot(
+                primaryKey = Vector("id")
               )
             ),
-            read = ReadStep.Csv(
-              header = Some(true)
-            ),
-            preprocess =
-              ds.content.source.asInstanceOf[DatasetSource.Root].preprocess,
-            merge = MergeStrategy.Snapshot(
-              primaryKey = Vector("id")
-            )
-          ),
-          vocab = Some(DatasetVocabulary(eventTimeColumn = Some("date")))
+            SetVocab(eventTimeColumn = Some("date"))
+          )
         )
       )
-    )
-
-    ds.content.source
-      .asInstanceOf[DatasetSource.Root]
-      .preprocess
-      .get
-      .engine should equal(
-      "sparkSQL"
     )
   }
 
@@ -123,17 +124,18 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  name: com.naturalearthdata.countries.admin0
-      |  source:
-      |    kind: derivative
-      |    inputs:
-      |    - name: com.naturalearthdata.countries.10m.admin0
-      |    - name: com.naturalearthdata.countries.50m.admin0
-      |    transform:
-      |      kind: sql
-      |      engine: sparkSQL
-      |      queries:
-      |      - alias: com.naturalearthdata.countries.admin0
-      |        query: SOME_SQL
+      |  kind: derivative
+      |  metadata:
+      |    - kind: setTransform
+      |      inputs:
+      |        - name: com.naturalearthdata.countries.10m.admin0
+      |        - name: com.naturalearthdata.countries.50m.admin0
+      |      transform:
+      |        kind: sql
+      |        engine: sparkSQL
+      |        queries:
+      |          - alias: com.naturalearthdata.countries.admin0
+      |            query: SOME_SQL
     """.stripMargin
 
   it should "successfully load derivative dataset manifest" in {
@@ -146,28 +148,26 @@ class UtilsSpec extends FlatSpec with Matchers {
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
           name = DatasetName("com.naturalearthdata.countries.admin0"),
-          source = DatasetSource.Derivative(
-            inputs = Vector(
-              TransformInput(
-                None,
-                DatasetName("com.naturalearthdata.countries.10m.admin0")
+          kind = DatasetKind.Derivative,
+          metadata = Vector(
+            SetTransform(
+              inputs = Vector(
+                TransformInput(
+                  None,
+                  DatasetName("com.naturalearthdata.countries.10m.admin0")
+                ),
+                TransformInput(
+                  None,
+                  DatasetName("com.naturalearthdata.countries.50m.admin0")
+                )
               ),
-              TransformInput(
-                None,
-                DatasetName("com.naturalearthdata.countries.50m.admin0")
-              )
-            ),
-            transform =
-              ds.content.source.asInstanceOf[DatasetSource.Derivative].transform
+              transform =
+                ds.content.metadata(0).asInstanceOf[SetTransform].transform
+            )
           )
         )
       )
     )
-
-    ds.content.source
-      .asInstanceOf[DatasetSource.Derivative]
-      .transform
-      .engine should equal("sparkSQL")
   }
 
   val VALID_METADATA_BLOCK =
@@ -177,34 +177,27 @@ class UtilsSpec extends FlatSpec with Matchers {
       |content:
       |  prevBlockHash: ffeebbddaaeedd
       |  systemTime: '1970-01-01T00:00:00.000Z'
-      |  source:
-      |    kind: derivative
-      |    inputs:
-      |    - name: input1
-      |    - name: input2
-      |    transform:
-      |      kind: sql
-      |      engine: sparkSQL
-      |      query: SELECT * FROM input1 UNION ALL SELECT * FROM input2
-      |  outputSlice:
-      |    dataLogicalHash: ffaabb
-      |    dataPhysicalHash: ffaabb
-      |    dataInterval:
-      |      start: 0
-      |      end: 9
-      |  outputWatermark: '1970-01-01T00:01:00.000Z'
-      |  inputSlices:
-      |  - datasetID: input1
-      |    blockInterval:
-      |      start: aa
-      |      end: bb
-      |    dataInterval:
-      |      start: 0
-      |      end: 9
-      |  - datasetID: input2
-      |    blockInterval:
-      |      start: cc
-      |      end: dd
+      |  event:
+      |    kind: executeQuery
+      |    inputSlices:
+      |      - datasetID: input1
+      |        blockInterval:
+      |          start: aa
+      |          end: bb
+      |        dataInterval:
+      |          start: 0
+      |          end: 9
+      |      - datasetID: input2
+      |        blockInterval:
+      |          start: cc
+      |          end: dd
+      |    outputData:
+      |      logicalHash: ffaabb
+      |      physicalHash: ffaabb
+      |      interval:
+      |        start: 0
+      |        end: 9
+      |    outputWatermark: '1970-01-01T00:01:00.000Z'
     """.stripMargin
 
   it should "successfully load metadata block manifest" in {
@@ -217,20 +210,8 @@ class UtilsSpec extends FlatSpec with Matchers {
         content = MetadataBlock(
           prevBlockHash = Some(Multihash("ffeebbddaaeedd")),
           systemTime = Instant.ofEpochMilli(0),
-          source = block.content.source,
-          outputSlice = Some(
-            OutputSlice(
-              dataLogicalHash = Multihash("ffaabb"),
-              dataPhysicalHash = Multihash("ffaabb"),
-              dataInterval = OffsetInterval(
-                start = 0,
-                end = 9
-              )
-            )
-          ),
-          outputWatermark = Some(Instant.ofEpochSecond(60)),
-          inputSlices = Some(
-            Vector(
+          event = ExecuteQuery(
+            inputSlices = Vector(
               InputSlice(
                 datasetID = DatasetID("input1"),
                 blockInterval = Some(
@@ -251,7 +232,20 @@ class UtilsSpec extends FlatSpec with Matchers {
                 ),
                 dataInterval = None
               )
-            )
+            ),
+            inputCheckpoint = None,
+            outputData = Some(
+              DataSlice(
+                logicalHash = Multihash("ffaabb"),
+                physicalHash = Multihash("ffaabb"),
+                interval = OffsetInterval(
+                  start = 0,
+                  end = 9
+                )
+              )
+            ),
+            outputCheckpoint = None,
+            outputWatermark = Some(Instant.ofEpochSecond(60))
           )
         )
       )

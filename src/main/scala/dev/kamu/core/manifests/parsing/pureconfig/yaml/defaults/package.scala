@@ -65,8 +65,8 @@ package object defaults {
       ConfigFieldMapping(PascalCase, CamelCase)
     )
 
-  implicit val datasetSourceHint: FieldCoproductHint[DatasetSource] =
-    new FieldCoproductHint[DatasetSource]("kind") {
+  implicit val metadataEventHint: FieldCoproductHint[MetadataEvent] =
+    new FieldCoproductHint[MetadataEvent]("kind") {
       override protected def fieldValue(name: String): String =
         Introspector.decapitalize(name)
     }
