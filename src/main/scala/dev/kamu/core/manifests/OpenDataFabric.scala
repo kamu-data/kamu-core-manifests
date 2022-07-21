@@ -381,6 +381,10 @@ object ReadStep {
     schema: Option[Vector[String]] = None,
     subPath: Option[String] = None
   ) extends ReadStep
+
+  case class Parquet(
+    schema: Option[Vector[String]] = None
+  ) extends ReadStep
 }
 
 ////////////////////////////////////////////////////////////////////////////////
