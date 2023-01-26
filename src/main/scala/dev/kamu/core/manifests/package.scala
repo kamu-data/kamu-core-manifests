@@ -14,6 +14,23 @@ package object manifests {
   // Extensions
   ////////////////////////////////////////////////////////////////////////////////
 
+  implicit class ExecuteQueryRequestOps(v: ExecuteQueryRequest) {
+    def withVocabDefaults(): ExecuteQueryRequest = {
+      v.copy(
+        vocab = v.vocab.withDefaults(),
+        inputs = v.inputs.map(_.withVocabDefaults())
+      )
+    }
+  }
+
+  implicit class ExecuteQueryInputOps(v: ExecuteQueryInput) {
+    def withVocabDefaults(): ExecuteQueryInput = {
+      v.copy(
+        vocab = v.vocab.withDefaults()
+      )
+    }
+  }
+
   implicit class DatasetVocabularyOps(v: DatasetVocabulary) {
     def withDefaults(): DatasetVocabulary = {
       v.copy(
@@ -46,7 +63,7 @@ package object manifests {
         "timestampFormat" -> r.timestampFormat,
         "multiLine" -> r.multiLine
       ).collect({
-        case (k, Some(s: String))  => k -> s
+        case (k, Some(s: String)) => k -> s
         case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
       })
     }
@@ -61,7 +78,7 @@ package object manifests {
         "primitivesAsString" -> r.primitivesAsString,
         "timestampFormat" -> r.timestampFormat
       ).collect({
-        case (k, Some(s: String))  => k -> s
+        case (k, Some(s: String)) => k -> s
         case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
       })
     }

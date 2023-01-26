@@ -500,7 +500,8 @@ case class SqlQueryStep(
 
 case class TemporalTable(
   name: String,
-  primaryKey: Vector[String]
+  primaryKey: Vector[String],
+  eventTimeColumn: Option[String] = None
 )
 
 ////////////////////////////////////////////////////////////////////////////////
