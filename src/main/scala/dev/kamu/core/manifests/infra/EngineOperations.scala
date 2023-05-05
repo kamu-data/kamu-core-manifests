@@ -19,7 +19,8 @@ import dev.kamu.core.manifests._
 case class IngestRequest(
   datasetID: DatasetID,
   datasetName: DatasetName,
-  ingestPath: String,
+  inputDataPath: String,
+  outputDataPath: String,
   systemTime: Instant,
   eventTime: Option[Instant],
   offset: Long,
@@ -27,6 +28,6 @@ case class IngestRequest(
   datasetVocab: DatasetVocabulary,
   prevCheckpointPath: Option[String],
   newCheckpointPath: String,
-  dataDir: String,
-  outDataPath: String
+  prevWatermark: Option[Instant],
+  dataDir: String
 )
