@@ -23,11 +23,27 @@ case class Multihash(s: String) extends AnyVal {
   override def toString: String = s
 }
 
-case class DatasetID(s: String) extends AnyVal {
+case class DatasetId(s: String) extends AnyVal {
   override def toString: String = s
+  def toMultibase(): String = {
+    assert(s.startsWith("did:odf:"))
+    s.substring(8, s.length)
+  }
 }
 
 case class DatasetName(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class DatasetAlias(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class DatasetRef(s: String) extends AnyVal {
+  override def toString: String = s
+}
+
+case class DatasetRefAny(s: String) extends AnyVal {
   override def toString: String = s
 }
 
@@ -37,10 +53,24 @@ case class DatasetName(s: String) extends AnyVal {
 ////////////////////////////////////////////////////////////////////////////////
 
 case class AddData(
-  inputCheckpoint: Option[Multihash] = None,
-  outputData: DataSlice,
-  outputCheckpoint: Option[Checkpoint] = None,
-  outputWatermark: Option[Instant] = None
+  prevCheckpoint: Option[Multihash] = None,
+  prevOffset: Option[Long] = None,
+  newData: Option[DataSlice] = None,
+  newCheckpoint: Option[Checkpoint] = None,
+  newWatermark: Option[Instant] = None,
+  newSourceState: Option[SourceState] = None
+) extends MetadataEvent
+
+////////////////////////////////////////////////////////////////////////////////
+// AddPushSource
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#addpushsource-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class AddPushSource(
+  sourceName: String,
+  read: ReadStep,
+  preprocess: Option[Transform] = None,
+  merge: MergeStrategy
 ) extends MetadataEvent
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,22 +97,13 @@ object Attachments {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// BlockInterval
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#blockinterval-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class BlockInterval(
-  start: Multihash,
-  end: Multihash
-)
-
-////////////////////////////////////////////////////////////////////////////////
 // Checkpoint
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#checkpoint-schema
 ////////////////////////////////////////////////////////////////////////////////
 
 case class Checkpoint(
-  physicalHash: Multihash
+  physicalHash: Multihash,
+  size: Long
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +114,8 @@ case class Checkpoint(
 case class DataSlice(
   logicalHash: Multihash,
   physicalHash: Multihash,
-  interval: OffsetInterval
+  offsetInterval: OffsetInterval,
+  size: Long
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,13 +123,20 @@ case class DataSlice(
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#datasetkind-schema
 ////////////////////////////////////////////////////////////////////////////////
 
+sealed trait DatasetKind
+object DatasetKind {
+  case object Root extends DatasetKind
+  case object Derivative extends DatasetKind
+  case object Remote extends DatasetKind
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // DatasetSnapshot
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#datasetsnapshot-schema
 ////////////////////////////////////////////////////////////////////////////////
 
 case class DatasetSnapshot(
-  name: DatasetName,
+  name: DatasetAlias,
   kind: DatasetKind,
   metadata: Vector[MetadataEvent]
 )
@@ -124,6 +153,33 @@ case class DatasetVocabulary(
 )
 
 ////////////////////////////////////////////////////////////////////////////////
+// DisablePollingSource
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#disablepollingsource-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class DisablePollingSource(
+  ) extends MetadataEvent
+
+////////////////////////////////////////////////////////////////////////////////
+// DisablePushSource
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#disablepushsource-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class DisablePushSource(
+  sourceName: String
+) extends MetadataEvent
+
+////////////////////////////////////////////////////////////////////////////////
+// EnvVar
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#envvar-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class EnvVar(
+  name: String,
+  value: Option[String] = None
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // EventTimeSource
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#eventtimesource-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +188,9 @@ sealed trait EventTimeSource
 
 object EventTimeSource {
   case class FromMetadata(
+    ) extends EventTimeSource
+
+  case class FromSystemTime(
     ) extends EventTimeSource
 
   case class FromPath(
@@ -146,11 +205,12 @@ object EventTimeSource {
 ////////////////////////////////////////////////////////////////////////////////
 
 case class ExecuteQuery(
-  inputSlices: Vector[InputSlice],
-  inputCheckpoint: Option[Multihash] = None,
-  outputData: Option[DataSlice] = None,
-  outputCheckpoint: Option[Checkpoint] = None,
-  outputWatermark: Option[Instant] = None
+  queryInputs: Vector[ExecuteQueryInput],
+  prevCheckpoint: Option[Multihash] = None,
+  prevOffset: Option[Long] = None,
+  newData: Option[DataSlice] = None,
+  newCheckpoint: Option[Checkpoint] = None,
+  newWatermark: Option[Instant] = None
 ) extends MetadataEvent
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,13 +219,11 @@ case class ExecuteQuery(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class ExecuteQueryInput(
-  datasetID: DatasetID,
-  datasetName: DatasetName,
-  vocab: DatasetVocabulary,
-  dataInterval: Option[OffsetInterval] = None,
-  dataPaths: Vector[Path],
-  schemaFile: Path,
-  explicitWatermarks: Vector[Watermark]
+  datasetId: DatasetId,
+  prevBlockHash: Option[Multihash] = None,
+  newBlockHash: Option[Multihash] = None,
+  prevOffset: Option[Long] = None,
+  newOffset: Option[Long] = None
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,16 +232,32 @@ case class ExecuteQueryInput(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class ExecuteQueryRequest(
-  datasetID: DatasetID,
-  datasetName: DatasetName,
+  datasetId: DatasetId,
+  datasetAlias: DatasetAlias,
   systemTime: Instant,
-  offset: Long,
   vocab: DatasetVocabulary,
   transform: Transform,
-  inputs: Vector[ExecuteQueryInput],
+  queryInputs: Vector[ExecuteQueryRequestInput],
+  nextOffset: Long,
   prevCheckpointPath: Option[Path] = None,
   newCheckpointPath: Path,
-  outDataPath: Path
+  newDataPath: Path
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// ExecuteQueryRequestInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryrequestinput-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class ExecuteQueryRequestInput(
+  datasetId: DatasetId,
+  datasetAlias: DatasetAlias,
+  queryAlias: String,
+  vocab: DatasetVocabulary,
+  offsetInterval: Option[OffsetInterval] = None,
+  dataPaths: Vector[Path],
+  schemaFile: Path,
+  explicitWatermarks: Vector[Watermark]
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,8 +272,8 @@ object ExecuteQueryResponse {
     ) extends ExecuteQueryResponse
 
   case class Success(
-    dataInterval: Option[OffsetInterval] = None,
-    outputWatermark: Option[Instant] = None
+    newOffsetInterval: Option[OffsetInterval] = None,
+    newWatermark: Option[Instant] = None
   ) extends ExecuteQueryResponse
 
   case class InvalidQuery(
@@ -223,7 +297,8 @@ object FetchStep {
   case class Url(
     url: URI,
     eventTime: Option[EventTimeSource] = None,
-    cache: Option[SourceCaching] = None
+    cache: Option[SourceCaching] = None,
+    headers: Option[Vector[RequestHeader]] = None
   ) extends FetchStep
 
   case class FilesGlob(
@@ -231,6 +306,13 @@ object FetchStep {
     eventTime: Option[EventTimeSource] = None,
     cache: Option[SourceCaching] = None,
     order: Option[SourceOrdering] = None
+  ) extends FetchStep
+
+  case class Container(
+    image: String,
+    command: Option[Vector[String]] = None,
+    args: Option[Vector[String]] = None,
+    env: Option[Vector[EnvVar]] = None
   ) extends FetchStep
 }
 
@@ -240,17 +322,6 @@ object SourceOrdering {
   case object ByEventTime extends SourceOrdering
   case object ByName extends SourceOrdering
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// InputSlice
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#inputslice-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class InputSlice(
-  datasetID: DatasetID,
-  blockInterval: Option[BlockInterval] = None,
-  dataInterval: Option[OffsetInterval] = None
-)
 
 ////////////////////////////////////////////////////////////////////////////////
 // MergeStrategy
@@ -285,6 +356,7 @@ object MergeStrategy {
 case class MetadataBlock(
   systemTime: Instant,
   prevBlockHash: Option[Multihash] = None,
+  sequenceNumber: Long,
   event: MetadataEvent
 )
 
@@ -348,32 +420,33 @@ object ReadStep {
     encoding: Option[String] = None,
     quote: Option[String] = None,
     escape: Option[String] = None,
-    comment: Option[String] = None,
     header: Option[Boolean] = None,
-    enforceSchema: Option[Boolean] = None,
     inferSchema: Option[Boolean] = None,
-    ignoreLeadingWhiteSpace: Option[Boolean] = None,
-    ignoreTrailingWhiteSpace: Option[Boolean] = None,
     nullValue: Option[String] = None,
-    emptyValue: Option[String] = None,
-    nanValue: Option[String] = None,
-    positiveInf: Option[String] = None,
-    negativeInf: Option[String] = None,
     dateFormat: Option[String] = None,
-    timestampFormat: Option[String] = None,
-    multiLine: Option[Boolean] = None
+    timestampFormat: Option[String] = None
   ) extends ReadStep
 
-  case class JsonLines(
+  case class Json(
+    subPath: Option[String] = None,
     schema: Option[Vector[String]] = None,
     dateFormat: Option[String] = None,
     encoding: Option[String] = None,
-    multiLine: Option[Boolean] = None,
-    primitivesAsString: Option[Boolean] = None,
+    timestampFormat: Option[String] = None
+  ) extends ReadStep
+
+  case class NdJson(
+    schema: Option[Vector[String]] = None,
+    dateFormat: Option[String] = None,
+    encoding: Option[String] = None,
     timestampFormat: Option[String] = None
   ) extends ReadStep
 
   case class GeoJson(
+    schema: Option[Vector[String]] = None
+  ) extends ReadStep
+
+  case class NdGeoJson(
     schema: Option[Vector[String]] = None
   ) extends ReadStep
 
@@ -388,12 +461,22 @@ object ReadStep {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// RequestHeader
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#requestheader-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class RequestHeader(
+  name: String,
+  value: String
+)
+
+////////////////////////////////////////////////////////////////////////////////
 // Seed
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#seed-schema
 ////////////////////////////////////////////////////////////////////////////////
 
 case class Seed(
-  datasetID: DatasetID,
+  datasetId: DatasetId,
   datasetKind: DatasetKind
 ) extends MetadataEvent
 
@@ -404,6 +487,15 @@ case class Seed(
 
 case class SetAttachments(
   attachments: Attachments
+) extends MetadataEvent
+
+////////////////////////////////////////////////////////////////////////////////
+// SetDataSchema
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#setdataschema-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class SetDataSchema(
+  schema: Array[Byte]
 ) extends MetadataEvent
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -463,15 +555,6 @@ case class SetVocab(
 ) extends MetadataEvent
 
 ////////////////////////////////////////////////////////////////////////////////
-// SetWatermark
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#setwatermark-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class SetWatermark(
-  outputWatermark: Instant
-) extends MetadataEvent
-
-////////////////////////////////////////////////////////////////////////////////
 // SourceCaching
 // https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sourcecaching-schema
 ////////////////////////////////////////////////////////////////////////////////
@@ -482,6 +565,17 @@ object SourceCaching {
   case class Forever(
     ) extends SourceCaching
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// SourceState
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#sourcestate-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class SourceState(
+  sourceName: String,
+  kind: String,
+  value: String
+)
 
 ////////////////////////////////////////////////////////////////////////////////
 // SqlQueryStep
@@ -500,8 +594,7 @@ case class SqlQueryStep(
 
 case class TemporalTable(
   name: String,
-  primaryKey: Vector[String],
-  eventTimeColumn: Option[String] = None
+  primaryKey: Vector[String]
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -530,8 +623,8 @@ object Transform {
 ////////////////////////////////////////////////////////////////////////////////
 
 case class TransformInput(
-  id: Option[DatasetID] = None,
-  name: DatasetName
+  datasetRef: DatasetRef,
+  alias: Option[String] = None
 )
 
 ////////////////////////////////////////////////////////////////////////////////

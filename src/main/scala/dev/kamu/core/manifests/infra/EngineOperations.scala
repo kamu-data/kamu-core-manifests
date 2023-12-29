@@ -17,13 +17,13 @@ import dev.kamu.core.manifests._
 ///////////////////////////////////////////////////////////////////////////////
 
 case class IngestRequest(
-  datasetID: DatasetID,
-  datasetName: DatasetName,
+  datasetId: DatasetId,
+  datasetAlias: DatasetAlias,
   inputDataPath: String,
   outputDataPath: String,
   systemTime: Instant,
   eventTime: Option[Instant],
-  offset: Long,
+  nextOffset: Long,
   source: SetPollingSource,
   datasetVocab: DatasetVocabulary,
   prevCheckpointPath: Option[String],

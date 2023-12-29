@@ -18,13 +18,13 @@ package object manifests {
     def withVocabDefaults(): ExecuteQueryRequest = {
       v.copy(
         vocab = v.vocab.withDefaults(),
-        inputs = v.inputs.map(_.withVocabDefaults())
+        queryInputs = v.queryInputs.map(_.withVocabDefaults())
       )
     }
   }
 
-  implicit class ExecuteQueryInputOps(v: ExecuteQueryInput) {
-    def withVocabDefaults(): ExecuteQueryInput = {
+  implicit class ExecuteQueryRequestInputOps(v: ExecuteQueryRequestInput) {
+    def withVocabDefaults(): ExecuteQueryRequestInput = {
       v.copy(
         vocab = v.vocab.withDefaults()
       )
@@ -48,38 +48,26 @@ package object manifests {
         "encoding" -> r.encoding,
         "quote" -> r.quote,
         "escape" -> r.escape,
-        "comment" -> r.comment,
         "header" -> r.header,
-        "enforceSchema" -> r.enforceSchema.orElse(Some(false)),
         "inferSchema" -> r.inferSchema,
-        "ignoreLeadingWhiteSpace" -> r.ignoreLeadingWhiteSpace,
-        "ignoreTrailingWhiteSpace" -> r.ignoreTrailingWhiteSpace,
         "nullValue" -> r.nullValue,
-        "emptyValue" -> r.emptyValue,
-        "nanValue" -> r.nanValue,
-        "positiveInf" -> r.positiveInf,
-        "negativeInf" -> r.negativeInf,
         "dateFormat" -> r.dateFormat,
-        "timestampFormat" -> r.timestampFormat,
-        "multiLine" -> r.multiLine
+        "timestampFormat" -> r.timestampFormat
       ).collect({
-        case (k, Some(s: String)) => k -> s
+        case (k, Some(s: String))  => k -> s
         case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
       })
     }
   }
 
-  implicit class JsonLinesOps(r: ReadStep.JsonLines) {
+  implicit class NdJsonOps(r: ReadStep.NdJson) {
     def toSparkReaderOptions: Map[String, String] = {
       Map(
         "dateFormat" -> r.dateFormat,
         "encoding" -> r.encoding,
-        "multiLine" -> r.multiLine,
-        "primitivesAsString" -> r.primitivesAsString,
         "timestampFormat" -> r.timestampFormat
       ).collect({
         case (k, Some(s: String)) => k -> s
-        case (k, Some(b: Boolean)) => k -> (if (b) "true" else "false")
       })
     }
   }

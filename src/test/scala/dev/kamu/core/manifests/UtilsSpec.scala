@@ -24,30 +24,30 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  name: kamu.test
-      |  kind: root
+      |  kind: Root
       |  metadata:
-      |    - kind: setPollingSource
+      |    - kind: SetPollingSource
       |      fetch:
-      |        kind: url
+      |        kind: Url
       |        url: ftp://kamu.dev/test.zip
       |        cache:
-      |          kind: forever
+      |          kind: Forever
       |      prepare:
-      |        - kind: decompress
-      |          format: zip
+      |        - kind: Decompress
+      |          format: Zip
       |          subPath: data_*.csv
       |      read:
-      |        kind: csv
+      |        kind: Csv
       |        header: true
       |      preprocess:
-      |        kind: sql
+      |        kind: Sql
       |        engine: sparkSQL
       |        query: SELECT * FROM input
       |      merge:
-      |        kind: snapshot
+      |        kind: Snapshot
       |        primaryKey:
       |          - id
-      |    - kind: setVocab
+      |    - kind: SetVocab
       |      eventTimeColumn: date
     """.stripMargin
 
@@ -59,7 +59,7 @@ class UtilsSpec extends FlatSpec with Matchers {
         version = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
-          name = DatasetName("kamu.test"),
+          name = DatasetAlias("kamu.test"),
           kind = DatasetKind.Root,
           metadata = Vector(
             SetPollingSource(
@@ -99,11 +99,11 @@ class UtilsSpec extends FlatSpec with Matchers {
 
   val VALID_PATH_GLOB_FETCH =
     """
-      |kind: filesGlob
+      |kind: FilesGlob
       |path: /opt/x/*.txt
       |cache:
-      |  kind: forever
-      |order: byName
+      |  kind: Forever
+      |order: ByName
     """.stripMargin
 
   "YAML utils" should "successfully load glob fetch" in {
@@ -124,14 +124,16 @@ class UtilsSpec extends FlatSpec with Matchers {
       |kind: DatasetSnapshot
       |content:
       |  name: com.naturalearthdata.countries.admin0
-      |  kind: derivative
+      |  kind: Derivative
       |  metadata:
-      |    - kind: setTransform
+      |    - kind: SetTransform
       |      inputs:
-      |        - name: com.naturalearthdata.countries.10m.admin0
-      |        - name: com.naturalearthdata.countries.50m.admin0
+      |        - datasetRef: did:odf:fed012126262ba49e1ba8392c26f7a39e1ba8d756c7469786d3365200c68402ff65da
+      |          alias: com.naturalearthdata.countries.10m.admin0
+      |        - datasetRef: did:odf:fed012126262ba49e1ba8392c26f7a39e1ba8d756c7469786d3365200c68402ff65dc
+      |          alias: com.naturalearthdata.countries.50m.admin0
       |      transform:
-      |        kind: sql
+      |        kind: Sql
       |        engine: sparkSQL
       |        queries:
       |          - alias: com.naturalearthdata.countries.admin0
@@ -147,142 +149,28 @@ class UtilsSpec extends FlatSpec with Matchers {
         version = 1,
         kind = "DatasetSnapshot",
         content = DatasetSnapshot(
-          name = DatasetName("com.naturalearthdata.countries.admin0"),
+          name = DatasetAlias("com.naturalearthdata.countries.admin0"),
           kind = DatasetKind.Derivative,
           metadata = Vector(
             SetTransform(
               inputs = Vector(
                 TransformInput(
-                  None,
-                  DatasetName("com.naturalearthdata.countries.10m.admin0")
+                  DatasetRef(
+                    "did:odf:fed012126262ba49e1ba8392c26f7a39e1ba8d756c7469786d3365200c68402ff65da"
+                  ),
+                  Some("com.naturalearthdata.countries.10m.admin0")
                 ),
                 TransformInput(
-                  None,
-                  DatasetName("com.naturalearthdata.countries.50m.admin0")
+                  DatasetRef(
+                    "did:odf:fed012126262ba49e1ba8392c26f7a39e1ba8d756c7469786d3365200c68402ff65dc"
+                  ),
+                  Some("com.naturalearthdata.countries.50m.admin0")
                 )
               ),
               transform =
                 ds.content.metadata(0).asInstanceOf[SetTransform].transform
             )
           )
-        )
-      )
-    )
-  }
-
-  val VALID_METADATA_BLOCK =
-    """
-      |version: 1
-      |kind: MetadataBlock
-      |content:
-      |  prevBlockHash: ffeebbddaaeedd
-      |  systemTime: '1970-01-01T00:00:00.000Z'
-      |  event:
-      |    kind: executeQuery
-      |    inputSlices:
-      |      - datasetID: input1
-      |        blockInterval:
-      |          start: aa
-      |          end: bb
-      |        dataInterval:
-      |          start: 0
-      |          end: 9
-      |      - datasetID: input2
-      |        blockInterval:
-      |          start: cc
-      |          end: dd
-      |    outputData:
-      |      logicalHash: ffaabb
-      |      physicalHash: ffaabb
-      |      interval:
-      |        start: 0
-      |        end: 9
-      |    outputWatermark: '1970-01-01T00:01:00.000Z'
-    """.stripMargin
-
-  it should "successfully load metadata block manifest" in {
-    val block = yaml.load[Manifest[MetadataBlock]](VALID_METADATA_BLOCK)
-
-    block should equal(
-      Manifest(
-        version = 1,
-        kind = "MetadataBlock",
-        content = MetadataBlock(
-          prevBlockHash = Some(Multihash("ffeebbddaaeedd")),
-          systemTime = Instant.ofEpochMilli(0),
-          event = ExecuteQuery(
-            inputSlices = Vector(
-              InputSlice(
-                datasetID = DatasetID("input1"),
-                blockInterval = Some(
-                  BlockInterval(
-                    start = Multihash("aa"),
-                    end = Multihash("bb")
-                  )
-                ),
-                dataInterval = Some(OffsetInterval(start = 0, end = 9))
-              ),
-              InputSlice(
-                datasetID = DatasetID("input2"),
-                blockInterval = Some(
-                  BlockInterval(
-                    start = Multihash("cc"),
-                    end = Multihash("dd")
-                  )
-                ),
-                dataInterval = None
-              )
-            ),
-            inputCheckpoint = None,
-            outputData = Some(
-              DataSlice(
-                logicalHash = Multihash("ffaabb"),
-                physicalHash = Multihash("ffaabb"),
-                interval = OffsetInterval(
-                  start = 0,
-                  end = 9
-                )
-              )
-            ),
-            outputCheckpoint = None,
-            outputWatermark = Some(Instant.ofEpochSecond(60))
-          )
-        )
-      )
-    )
-  }
-
-  val VALID_DATASET_SUMMARY =
-    """
-      |version: 1
-      |kind: DatasetSummary
-      |content:
-      |  id: "did:odf:abcdef"
-      |  name: baz
-      |  kind: root
-      |  dependencies:
-      |  - foo
-      |  - bar
-      |  lastPulled: '1970-01-01T00:02:00.000Z'
-      |  dataSize: 1024
-      |  numRecords: 100
-    """.stripMargin
-
-  it should "successfully load dataset summary manifest" in {
-    val block = yaml.load[Manifest[DatasetSummary]](VALID_DATASET_SUMMARY)
-
-    block should equal(
-      Manifest(
-        version = 1,
-        kind = "DatasetSummary",
-        content = DatasetSummary(
-          id = DatasetID("did:odf:abcdef"),
-          name = DatasetName("baz"),
-          kind = DatasetKind.Root,
-          dependencies = Set(DatasetID("foo"), DatasetID("bar")),
-          lastPulled = Some(Instant.ofEpochSecond(120)),
-          dataSize = 1024,
-          numRecords = 100
         )
       )
     )
