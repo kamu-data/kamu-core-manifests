@@ -14,17 +14,6 @@ package object manifests {
   // Extensions
   ////////////////////////////////////////////////////////////////////////////////
 
-  implicit class DatasetVocabularyExt(v: DatasetVocabulary) {
-    // Avoid using in prod code - vocabulary should always be specified in full by the coordinator
-    def withDefaults(): DatasetVocabulary = {
-      DatasetVocabulary(
-        systemTimeColumn = Some(v.systemTimeColumn.getOrElse("system_time")),
-        eventTimeColumn = Some(v.eventTimeColumn.getOrElse("event_time")),
-        offsetColumn = Some(v.offsetColumn.getOrElse("offset"))
-      )
-    }
-  }
-
   implicit class CsvOps(r: ReadStep.Csv) {
     def toSparkReaderOptions: Map[String, String] = {
       Map(

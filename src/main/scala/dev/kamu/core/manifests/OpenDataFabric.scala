@@ -147,10 +147,20 @@ case class DatasetSnapshot(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class DatasetVocabulary(
-  systemTimeColumn: Option[String] = None,
-  eventTimeColumn: Option[String] = None,
-  offsetColumn: Option[String] = None
+  systemTimeColumn: String,
+  eventTimeColumn: String,
+  offsetColumn: String
 )
+
+object DatasetVocabulary {
+  def default(): DatasetVocabulary = {
+    DatasetVocabulary(
+      systemTimeColumn = "system_time",
+      eventTimeColumn = "event_time",
+      offsetColumn = "offset"
+    )
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // DisablePollingSource
