@@ -117,9 +117,14 @@ package object defaults {
         name
     }
 
-  implicit val executeQueryResponseHint
-    : FieldCoproductHint[ExecuteQueryResponse] =
-    new FieldCoproductHint[ExecuteQueryResponse]("kind") {
+  implicit val rawQueryResponseHint: FieldCoproductHint[RawQueryResponse] =
+    new FieldCoproductHint[RawQueryResponse]("kind") {
+      override protected def fieldValue(name: String): String =
+        name
+    }
+
+  implicit val transformResponseHint: FieldCoproductHint[TransformResponse] =
+    new FieldCoproductHint[TransformResponse]("kind") {
       override protected def fieldValue(name: String): String =
         name
     }

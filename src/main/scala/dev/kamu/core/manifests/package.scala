@@ -14,33 +14,6 @@ package object manifests {
   // Extensions
   ////////////////////////////////////////////////////////////////////////////////
 
-  implicit class ExecuteQueryRequestOps(v: ExecuteQueryRequest) {
-    def withVocabDefaults(): ExecuteQueryRequest = {
-      v.copy(
-        vocab = v.vocab.withDefaults(),
-        queryInputs = v.queryInputs.map(_.withVocabDefaults())
-      )
-    }
-  }
-
-  implicit class ExecuteQueryRequestInputOps(v: ExecuteQueryRequestInput) {
-    def withVocabDefaults(): ExecuteQueryRequestInput = {
-      v.copy(
-        vocab = v.vocab.withDefaults()
-      )
-    }
-  }
-
-  implicit class DatasetVocabularyOps(v: DatasetVocabulary) {
-    def withDefaults(): DatasetVocabulary = {
-      v.copy(
-        offsetColumn = v.offsetColumn.orElse(Some("offset")),
-        systemTimeColumn = v.systemTimeColumn.orElse(Some("system_time")),
-        eventTimeColumn = v.eventTimeColumn.orElse(Some("event_time"))
-      )
-    }
-  }
-
   implicit class CsvOps(r: ReadStep.Csv) {
     def toSparkReaderOptions: Map[String, String] = {
       Map(

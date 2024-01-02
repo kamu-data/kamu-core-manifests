@@ -200,12 +200,12 @@ object EventTimeSource {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ExecuteQuery
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequery-schema
+// ExecuteTransform
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executetransform-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class ExecuteQuery(
-  queryInputs: Vector[ExecuteQueryInput],
+case class ExecuteTransform(
+  queryInputs: Vector[ExecuteTransformInput],
   prevCheckpoint: Option[Multihash] = None,
   prevOffset: Option[Long] = None,
   newData: Option[DataSlice] = None,
@@ -214,77 +214,17 @@ case class ExecuteQuery(
 ) extends MetadataEvent
 
 ////////////////////////////////////////////////////////////////////////////////
-// ExecuteQueryInput
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryinput-schema
+// ExecuteTransformInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executetransforminput-schema
 ////////////////////////////////////////////////////////////////////////////////
 
-case class ExecuteQueryInput(
+case class ExecuteTransformInput(
   datasetId: DatasetId,
   prevBlockHash: Option[Multihash] = None,
   newBlockHash: Option[Multihash] = None,
   prevOffset: Option[Long] = None,
   newOffset: Option[Long] = None
 )
-
-////////////////////////////////////////////////////////////////////////////////
-// ExecuteQueryRequest
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryrequest-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class ExecuteQueryRequest(
-  datasetId: DatasetId,
-  datasetAlias: DatasetAlias,
-  systemTime: Instant,
-  vocab: DatasetVocabulary,
-  transform: Transform,
-  queryInputs: Vector[ExecuteQueryRequestInput],
-  nextOffset: Long,
-  prevCheckpointPath: Option[Path] = None,
-  newCheckpointPath: Path,
-  newDataPath: Path
-)
-
-////////////////////////////////////////////////////////////////////////////////
-// ExecuteQueryRequestInput
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryrequestinput-schema
-////////////////////////////////////////////////////////////////////////////////
-
-case class ExecuteQueryRequestInput(
-  datasetId: DatasetId,
-  datasetAlias: DatasetAlias,
-  queryAlias: String,
-  vocab: DatasetVocabulary,
-  offsetInterval: Option[OffsetInterval] = None,
-  dataPaths: Vector[Path],
-  schemaFile: Path,
-  explicitWatermarks: Vector[Watermark]
-)
-
-////////////////////////////////////////////////////////////////////////////////
-// ExecuteQueryResponse
-// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#executequeryresponse-schema
-////////////////////////////////////////////////////////////////////////////////
-
-sealed trait ExecuteQueryResponse
-
-object ExecuteQueryResponse {
-  case class Progress(
-    ) extends ExecuteQueryResponse
-
-  case class Success(
-    newOffsetInterval: Option[OffsetInterval] = None,
-    newWatermark: Option[Instant] = None
-  ) extends ExecuteQueryResponse
-
-  case class InvalidQuery(
-    message: String
-  ) extends ExecuteQueryResponse
-
-  case class InternalError(
-    message: String,
-    backtrace: Option[String] = None
-  ) extends ExecuteQueryResponse
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // FetchStep
@@ -402,6 +342,42 @@ sealed trait CompressionFormat
 object CompressionFormat {
   case object Gzip extends CompressionFormat
   case object Zip extends CompressionFormat
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// RawQueryRequest
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#rawqueryrequest-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class RawQueryRequest(
+  inputDataPaths: Vector[Path],
+  transform: Transform,
+  outputDataPath: Path
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// RawQueryResponse
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#rawqueryresponse-schema
+////////////////////////////////////////////////////////////////////////////////
+
+sealed trait RawQueryResponse
+
+object RawQueryResponse {
+  case class Progress(
+    ) extends RawQueryResponse
+
+  case class Success(
+    numRecords: Long
+  ) extends RawQueryResponse
+
+  case class InvalidQuery(
+    message: String
+  ) extends RawQueryResponse
+
+  case class InternalError(
+    message: String,
+    backtrace: Option[String] = None
+  ) extends RawQueryResponse
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -626,6 +602,66 @@ case class TransformInput(
   datasetRef: DatasetRef,
   alias: Option[String] = None
 )
+
+////////////////////////////////////////////////////////////////////////////////
+// TransformRequest
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transformrequest-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class TransformRequest(
+  datasetId: DatasetId,
+  datasetAlias: DatasetAlias,
+  systemTime: Instant,
+  vocab: DatasetVocabulary,
+  transform: Transform,
+  queryInputs: Vector[TransformRequestInput],
+  nextOffset: Long,
+  prevCheckpointPath: Option[Path] = None,
+  newCheckpointPath: Path,
+  newDataPath: Path
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// TransformRequestInput
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transformrequestinput-schema
+////////////////////////////////////////////////////////////////////////////////
+
+case class TransformRequestInput(
+  datasetId: DatasetId,
+  datasetAlias: DatasetAlias,
+  queryAlias: String,
+  vocab: DatasetVocabulary,
+  offsetInterval: Option[OffsetInterval] = None,
+  dataPaths: Vector[Path],
+  schemaFile: Path,
+  explicitWatermarks: Vector[Watermark]
+)
+
+////////////////////////////////////////////////////////////////////////////////
+// TransformResponse
+// https://github.com/kamu-data/open-data-fabric/blob/master/open-data-fabric.md#transformresponse-schema
+////////////////////////////////////////////////////////////////////////////////
+
+sealed trait TransformResponse
+
+object TransformResponse {
+  case class Progress(
+    ) extends TransformResponse
+
+  case class Success(
+    newOffsetInterval: Option[OffsetInterval] = None,
+    newWatermark: Option[Instant] = None
+  ) extends TransformResponse
+
+  case class InvalidQuery(
+    message: String
+  ) extends TransformResponse
+
+  case class InternalError(
+    message: String,
+    backtrace: Option[String] = None
+  ) extends TransformResponse
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Watermark
