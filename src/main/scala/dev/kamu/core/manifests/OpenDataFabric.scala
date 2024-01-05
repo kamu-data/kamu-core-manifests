@@ -147,17 +147,19 @@ case class DatasetSnapshot(
 ////////////////////////////////////////////////////////////////////////////////
 
 case class DatasetVocabulary(
+  offsetColumn: String,
+  operationColumn: String,
   systemTimeColumn: String,
-  eventTimeColumn: String,
-  offsetColumn: String
+  eventTimeColumn: String
 )
 
 object DatasetVocabulary {
   def default(): DatasetVocabulary = {
     DatasetVocabulary(
+      offsetColumn = "offset",
+      operationColumn = "op",
       systemTimeColumn = "system_time",
-      eventTimeColumn = "event_time",
-      offsetColumn = "offset"
+      eventTimeColumn = "event_time"
     )
   }
 }
@@ -290,11 +292,7 @@ object MergeStrategy {
 
   case class Snapshot(
     primaryKey: Vector[String],
-    compareColumns: Option[Vector[String]] = None,
-    observationColumn: Option[String] = None,
-    obsvAdded: Option[String] = None,
-    obsvChanged: Option[String] = None,
-    obsvRemoved: Option[String] = None
+    compareColumns: Option[Vector[String]] = None
   ) extends MergeStrategy
 }
 
