@@ -148,7 +148,7 @@ case class DatasetSnapshot(
 
 case class DatasetVocabulary(
   offsetColumn: String,
-  operationColumn: String,
+  operationTypeColumn: String,
   systemTimeColumn: String,
   eventTimeColumn: String
 )
@@ -157,7 +157,7 @@ object DatasetVocabulary {
   def default(): DatasetVocabulary = {
     DatasetVocabulary(
       offsetColumn = "offset",
-      operationColumn = "op",
+      operationTypeColumn = "op",
       systemTimeColumn = "system_time",
       eventTimeColumn = "event_time"
     )
