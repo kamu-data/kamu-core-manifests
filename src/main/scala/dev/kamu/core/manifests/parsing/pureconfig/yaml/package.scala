@@ -1,18 +1,31 @@
 /*
- * Copyright (c) 2018 kamu.dev
+ * Copyright 2018 kamu.dev
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package dev.kamu.core.manifests.parsing.pureconfig
 
-import java.io.{ByteArrayOutputStream, InputStream, OutputStream, PrintWriter}
+import java.io.{
+  ByteArrayOutputStream,
+  FileInputStream,
+  FileOutputStream,
+  InputStream,
+  OutputStream,
+  PrintWriter
+}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-
-import better.files.File
 import com.typesafe.config.{Config, ConfigObject}
 import org.yaml.snakeyaml.{DumperOptions, Yaml}
 import pureconfig.error.ConfigReaderException
@@ -24,20 +37,20 @@ package object yaml {
   import pureconfig._
 
   def load[T: ClassTag](inputStream: InputStream)(
-    implicit reader: Derivation[ConfigReader[T]]
+    implicit reader: ConfigReader[T]
   ): T = {
     val str = scala.io.Source.fromInputStream(inputStream).mkString
     load[T](str)
   }
 
   def load[T: ClassTag](str: String)(
-    implicit reader: Derivation[ConfigReader[T]]
+    implicit reader: ConfigReader[T]
   ): T = {
     YamlConfigSource.string(str).loadOrThrow[T]
   }
 
   def load[T: ClassTag](conf: Config)(
-    implicit reader: Derivation[ConfigReader[T]]
+    implicit reader: ConfigReader[T]
   ): T = {
     ConfigSource.fromConfig(conf).load[T] match {
       case Right(config)  => config
@@ -46,16 +59,16 @@ package object yaml {
   }
 
   def load[T: ClassTag](path: Path)(
-    implicit reader: Derivation[ConfigReader[T]]
+    implicit reader: ConfigReader[T]
   ): T = {
-    val inputStream = File(path).newInputStream
+    val inputStream = new FileInputStream(path.toFile)
     val res = load[T](inputStream)
     inputStream.close()
     res
   }
 
   def loadFromResources[T: ClassTag](resourceName: String)(
-    implicit reader: Derivation[ConfigReader[T]]
+    implicit reader: ConfigReader[T]
   ): T = {
     val stream = getClass.getClassLoader.getResourceAsStream(resourceName)
 
@@ -70,7 +83,7 @@ package object yaml {
   }
 
   def save[T: ClassTag](obj: T, outputStream: OutputStream)(
-    implicit derivation: Derivation[ConfigWriter[T]]
+    implicit derivation: ConfigWriter[T]
   ): Unit = {
     val configValue = ConfigWriter[T].to(obj)
     val writer = new PrintWriter(outputStream)
@@ -84,14 +97,14 @@ package object yaml {
   }
 
   def save[T: ClassTag](obj: T, path: Path)(
-    implicit derivation: Derivation[ConfigWriter[T]]
+    implicit derivation: ConfigWriter[T]
   ): Unit = {
-    val outputStream = File(path).newOutputStream()
+    val outputStream = new FileOutputStream(path.toFile)
     try {
       save(obj, outputStream)
     } catch {
       case e: Exception =>
-        File(path).delete(swallowIOExceptions = true)
+        path.toFile.delete()
         throw e
     } finally {
       outputStream.close()
@@ -99,7 +112,7 @@ package object yaml {
   }
 
   def saveStr[T: ClassTag](obj: T)(
-    implicit derivation: Derivation[ConfigWriter[T]]
+    implicit derivation: ConfigWriter[T]
   ): String = {
     val stream = new ByteArrayOutputStream()
     save(obj, stream)
@@ -107,7 +120,7 @@ package object yaml {
   }
 
   def saveObj[T: ClassTag](obj: T)(
-    implicit derivation: Derivation[ConfigWriter[T]]
+    implicit derivation: ConfigWriter[T]
   ): ConfigObject = {
     val configValue = ConfigWriter[T].to(obj)
     configValue.asInstanceOf[ConfigObject]
